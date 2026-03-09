@@ -1,0 +1,93 @@
+@extends('layouts.app')
+
+@section('content')
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">Home</a></li>
+                            <li class="breadcrumb-item">Statistics</li>
+                            <li class="breadcrumb-item">Admin Statistic</li>
+                        </ol>
+                    </div>
+                </div>
+            </div><!-- /.container-fluid -->
+        </section>
+        <!-- Main content -->
+        <section class="content">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card rounded-0">
+                        <div class="card-body">
+                            <table id="example2" class="table table-striped">
+                                <thead>
+                                <tr>
+                                    <th colspan="2" class="text-center"><i class="fa fa-flag"></i> Pakistan</th>
+                                </tr>
+                                <tr>
+                                    <th class="text-center"><i class="fa fa-users"></i> {{ Auth::user()->name }}</th>
+                                </tr>
+                                </thead>
+                            </table>
+                            @foreach($provinces as $province)
+                                <table class="table table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th class="bg-info" colspan="12"><i class="fa fa-map"></i> {{ $province->name }}</th>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fa fa-map-marker"></i> City</th>
+                                        <th>Sub Admin</th>
+                                        <th>Agent</th>
+                                        <th>GO</th>
+                                        <th>Population</th>
+                                        <th>Flight</th>
+                                        <th>Hotel</th>
+                                        <th>Umrah</th>
+                                        <th>Tours</th>
+                                        <th>Total</th>
+                                        <th>%</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    @foreach($cities as $city)
+                                        @if($city->PID==$province->id)
+                                            <tr>
+                                                <th><i class="fa fa-map-marker"></i> {{ $city->name }}</th>
+                                                <td>JAM TRAVEL & TOURS</td>
+                                                <td>12</td>
+                                                <td>36</td>
+                                                <td>20000000</td>
+                                                <td>4</td>
+                                                <td>4</td>
+                                                <td>4</td>
+                                                <td>4</td>
+                                                <td>20</td>
+                                                <td>0.001%</td>
+                                            </tr>
+                                        @endif
+                                    @endforeach
+                                    </tbody>
+                                </table>
+                            @endforeach
+                        </div>
+                        <!-- /.card-body -->
+                        <div class="card-footer clearfix">
+                            <div class="pagination-panel"></div>
+                        </div>
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+@endsection
