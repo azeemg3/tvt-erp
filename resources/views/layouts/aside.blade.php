@@ -36,7 +36,7 @@ $acc_providor=['account_statement'];
     <!-- Brand Logo -->
     <a href="{{ url('home') }}" class="brand-link elevation-4 navbar-info" style="padding: 12px !important;">
         {{--<img src="{{ URL::asset('public/dist/img/logo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3">--}}
-        <span class="brand-text font-weight-light">YourOwn-Trips</span>
+        <span class="brand-text font-weight-light">Tour Vision Travel</span>
     </a>
     <!-- Sidebar -->
     <div class="sidebar">

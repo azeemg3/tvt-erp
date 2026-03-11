@@ -24,7 +24,7 @@
     $qc->QRCODE(400,'uotrip00'.$flight->id.'');
 @endphp
 <div class="col-md-12" style="position: relative;min-height: 100%;height: 100%; float: left; width: 100% !important;">
-    <h4 style="font-size: 14px;text-align: center">HUSSAIN INTERNATIONAL TRAVEL & TOURS</h4><br>
+    <h4 style="font-size: 14px;text-align: center">Tour Vision Travel Pvt Ltd</h4><br>
     <table width="100%" style="font-family: sans-serif;line-height: 1.2">
         <tr>
             <td width="40%" style="text-align: left;"><h4 style="margin-bottom: 10px;margin-top: 5px;font-size: 14px;">Client: {{ $agent->agent_name }}</h4>

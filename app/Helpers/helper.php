@@ -286,7 +286,7 @@ class CommonHelper{
         $html='';
         $html.='
             <div class="print-header" style="display: none">
-                <h1 style="font-size: 16px;text-align: center">HUSSAIN INTERNATIONAL TRAVEL & TOURS</h1>
+                <h1 style="font-size: 16px;text-align: center">Tour Vision Travel</h1>
                 <div style="text-align: center">
                     101, 1st Floor Trade Tower Abdullah Haroon Road, Saddar, Karachi<br>
                     Phone: 4298765432</br>
