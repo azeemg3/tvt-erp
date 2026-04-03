@@ -189,7 +189,7 @@ $acc_providor=['account_statement'];
                     </li>
                 @endcan
                 @can('lms_view')
-                    <li class="nav-item has-treeview <?php if(in_array(Request::segment(2), $lead)) echo 'menu-open'; ?>">
+                    <!--<li class="nav-item has-treeview <?php if(in_array(Request::segment(2), $lead)) echo 'menu-open'; ?>">
                         <a href="#" class="nav-link">
                             <i class='nav-icon fas fa-graduation-cap fa-xs'></i>
                             <p>
@@ -237,7 +237,7 @@ $acc_providor=['account_statement'];
                                 </li>
                             @endcan
                         </ul>
-                    </li>
+                    </li>-->
                 @endcan
                 @can('visa_view')
                     <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $visa)) echo 'menu-open' ?>">

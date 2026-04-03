@@ -12,7 +12,7 @@
         $("#"+mID).find(".btn-success").text('Submit');
         $(".select2").select2();
         $(".get_ticket_invDetails").html('');
-        $(".get_hotel_invDetails").html('');
+        $(".get_hotel_iget_lead_ticket_invDetailsnvDetails").html('');
         $(".get_visa_invDetails").html('');
         $(".get_transport_invDetails").html('');
         $(".get_other_invDetails").html('');
@@ -112,19 +112,19 @@
             success:function (data) {
                 htmlData='';
                 for(i in data.data){
-                    htmlData+='<tr id="'+data.data[i].id+'">';
+                    htmlData+='<tr id="'+data.data[i].id+'"  class="'+(data.data[i].total_posted>0?'bg-gradient-danger':'')+'">';
                     htmlData+='<td>'+(Number(i)+1)+'</td>';
                     htmlData+='<td>'+data.data[i].id+'</td>';
                     htmlData+='<td>'+data.data[i].inv_date+'</td>';
                     htmlData+='<td>'+data.data[i].Trans_Acc_Name+'</td>';
-                    htmlData+='<td>'+number_format(data.data[i].payable)+'</td>';
-                    htmlData+='<td>'+number_format(data.data[i].total)+'</td>';
-                    htmlData+='<td>'+number_format(data.data[i].discount)+'</td>';
-                    htmlData+='<td>'+number_format(data.data[i].profit)+'</td>';
+                    htmlData+='<td>'+(data.data[i].payable)+'</td>';
+                    htmlData+='<td>'+(data.data[i].total)+'</td>';
+                    htmlData+='<td>'+(data.data[i].discount)+'</td>';
+                    htmlData+='<td>'+(data.data[i].profit)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_invoice('+data.data[i].id+', \'ticket-modal\', \'1\')"><i class="fa fa-edit"></i> </a>';
                     htmlData+=' <a href="{{ url('lms/lead_ticket') }}/'+data.data[i].id+'" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
-                    {{--htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';--}}
+                    // htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Sale/del_ticket_inv/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
@@ -158,7 +158,7 @@
                     htmlData+='<td>'+number_format(data[i].receiveable)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_rec(this,'+data[i].id+', \'ticket-form\', \'{{ url('lms/lead_ticket') }}/' + data[i].id + '/edit\')"><i class="fa fa-edit"></i> </a>';
-                    {{--htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';--}}
+                    htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data[i].id+'\', \'{{ url('lms/lead_ticket/') }}/'+data[i].id+'\')"><i class="fa fa-trash"></i> </a>';
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
@@ -230,7 +230,7 @@
                     htmlData+='<td>'+number_format(data.data[i].profit)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_invoice('+data.data[i].id+', \'hotel-modal\', \'2\')"><i class="fa fa-edit"></i> </a>';
-                    htmlData+=' <a href="{{ url('lms/lead_ticket') }}/'+data.data[i].id+'" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
+                    htmlData+=' <a href="{{ url('lms/lead_hotel') }}/'+data.data[i].id+'" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
                     {{--htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';--}}
                         htmlData+='</td>';
                     htmlData+='</tr>';
@@ -365,7 +365,7 @@
                     htmlData+='<td>'+number_format(data.data[i].profit)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_invoice('+data.data[i].id+', \'transport-modal\', \'4\')"><i class="fa fa-edit"></i> </a>';
-                    htmlData+=' <a href="#"  class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
+                    htmlData+=' <a href="{{ url('lms/lead_transport') }}/'+data.data[i].id+'" target="_blank"  class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
                     {{--htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';--}}
                         htmlData+='</td>';
                     htmlData+='</tr>';
@@ -428,7 +428,7 @@
                     htmlData+='<td>'+number_format(data.data[i].total)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_invoice('+data.data[i].id+', \'other-modal\', \'6\')"><i class="fa fa-edit"></i> </a>';
-                    htmlData+=' <a href="#"  class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
+                    htmlData+=' <a href="{{ url('lms/lead_other') }}/'+data.data[i].id+'" target="_blank"  class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
                     {{--htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';--}}
                         htmlData+='</td>';
                     htmlData+='</tr>';
@@ -456,8 +456,8 @@
                     htmlData+='<td>'+(Number(i)+1)+'</td>';
                     htmlData+='<td>'+data[i].passport+'</td>';
                     htmlData+='<td>'+data[i].pax_name+'</td>';
-                    htmlData+='<td>'+data[i].group_no+'</td>';
-                    htmlData+='<td>'+vehicle_type(data[i].vehicle_type)+'</td>';
+                    htmlData+='<td>'+pax_type(data[i].pax_type)+'</td>';
+                    htmlData+='<td>'+data[i].pkg_details+'</td>';
                     htmlData+='<td>'+number_format(data[i].receiveable)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_rec(this, '+data[i].id+', \'other-form\', \'{{ url('lms/lead_other') }}/' + data[i].id + '/edit\')"><i class="fa fa-edit"></i> </a>';
@@ -674,7 +674,7 @@
                     htmlData+='<td>'+number_format(data.data[i].total)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_invoice('+data.data[i].id+', \'tour-modal\', \'5\')"><i class="fa fa-edit"></i> </a>';
-                    htmlData+=' <a href="#"  class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
+                    htmlData+=' <a href="{{ url('lms/tour') }}/'+data.data[i].id+'" target="_blank"  class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
                     {{--htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';--}}
                         htmlData+='</td>';
                     htmlData+='</tr>';
@@ -899,14 +899,15 @@
 
     });
     $(".psf_p").on("change", function () {
+        formData=$(this).closest('form').attr('id');
         var bf=$(this).closest('form').find('.bf').val();
         var psf=Number(bf)*Number($(this).val()/100);
         $(this).closest('form').find('.psf').val(Number(psf));
         if(formData=='tour-ticket-form' || formData=='ticket-form'){
-            ticket_cal(g);
+            ticket_cal(this);
         }
         if(formData=='tour-hotel-form' || formData=='hotel-form'){
-            hotel_cal(g);
+            hotel_cal(this);
         }
     });
     $(".disc_p").on("change", function () {
@@ -922,7 +923,8 @@
         }
     });
     $(".wh_client_p").on("change", function () {
-        g=$(this).val();
+        formData=$(this).closest('form').attr('id');
+        g=$(this);
         var discount=$(this).closest('form').find('.disc').val();
         var whc=Number(discount)*Number($(this).val())/100;
         $(this).closest('form').find(".wh_client").val(whc);
@@ -1036,4 +1038,98 @@
         })
     }
 
+  $(document).on('keydown', '#sector', function (e) {
+    if (e.key === ' ') {
+      e.preventDefault(); // stop real space
+      const el = this;
+      const start = el.selectionStart;
+      const end   = el.selectionEnd;
+      let v = $(this).val().toUpperCase();
+      // insert hyphen at cursor
+      const next = v.slice(0, start) + '-' + v.slice(end);
+      $(this).val(next);
+      // move caret after hyphen
+      el.setSelectionRange(start + 1, start + 1);
+    } else {
+      // ensure everything stays uppercase
+      setTimeout(() => {
+        $(this).val($(this).val().toUpperCase());
+      }, 0);
+    }
+  });
+$(document).on("change","#ticket-no",function(){
+    var ticket = $(this).val();
+    $.ajax({
+        url:'{{ url('crm/fetch_ticket') }}/'+ticket,
+        type:"GET",
+        dataType:"JSON",
+        success:function (data) {
+            if(data.success){
+                $("#ticket-form input[name~='pax_name']").val(data.data.passName);
+                $("#ticket-form input[name~='mobile']").val(data.data.phone);
+                $("#ticket-form input[name~='sector']").val(data.data.sector);
+                $("#ticket-form input[name~='psf']").val(data.data.acomission);
+                $("#ticket-form input[name~='receiveable']").val(data.data.recieved);
+                $("#ticket-form input[name~='bf']").val(data.data.base_fare);
+                $("#ticket-form input[name~='other_taxes']").val(data.data.airline_taxes);
+                $("#ticket-form input[name~='payable']").val(data.data.netCost);
+                $("#ticket-form input[name~='basic_fare']").val(data.data.base_fare);
+                cal_tax($("#ticket-form input[name~='other_taxes']"));
+            } else {
+                
+                toastr.error('Ticket not found');
+            }
+        }
+    });
+});
+function pagination(total_rec, per_page, cur_page, to, func, paginateClass, id) {
+    var arr;
+    if(paginateClass!=undefined) {
+        arr = paginateClass.split('-');
+        arr = arr.slice(-1).pop();
+    }
+    var total = total_rec;
+    get_data = func;
+    no_ofPage = Math.ceil(total / per_page);
+    if (cur_page >= 5) {
+        start_loop = cur_page - 3;
+        end_loop = Number(cur_page) + Number(2);
+        if (no_ofPage - 1 == cur_page) {
+            end_loop = no_ofPage;
+        }
+        if (cur_page == no_ofPage) {
+            end_loop = no_ofPage;
+        }
+    } else {
+        start_loop = 1;
+        if (no_ofPage > 5)
+            end_loop = 5;
+        else
+            end_loop = no_ofPage;
+    }
+    var htmlData = '';
+    htmlData += '<ul class="pagination pagination-sm m-0 float-right">' +
+        '<li class="page-item">' +
+        '<a class="page-link" onclick="get_data(1)" aria-label="Previous"><span aria-hidden="true">«</span></a>' +
+        '</li>';
+    for (i = start_loop; i <= end_loop; i++) {
+        if (i == cur_page) {
+            htmlData += '<li class="page-item active"><a class="page-link" onclick="get_data(' + i + ', \''+id+'\')">' + i + '</a></li>';
+        } else {
+            htmlData += '<li class="page-item"><a class="page-link" onclick="get_data(' + i + ', \''+id+'\')">' + i + '</a></li>';
+        }
+    }
+    htmlData += '<li class="page-item">' +
+        '<a class="page-link" onclick="get_data(' + no_ofPage + ')" aria-label="Next">' +
+        '<span aria-hidden="true">»</span>' +
+        '</a>' +
+        '</li>' +
+        '</ul>';
+    if(arr==undefined){
+        $(".pagination-panel").html(htmlData);
+    }else{
+        $("."+paginateClass).html(htmlData);
+    }
+
+}
 </script>
