@@ -5,6 +5,8 @@ namespace App\Http\Controllers\ApplicationSetup;
 use App\Http\Controllers\Controller;
 use App\Models\Hotel;
 use Illuminate\Http\Request;
+use DataTables;
+use DB;
 
 class HotelController extends Controller
 {
@@ -61,7 +63,27 @@ class HotelController extends Controller
     }
     //@fetch hotel list
     public function get_data(Request $request){
-        return Hotel::with('country')->orderByDesc('id')->paginate(15);
+        if ($request->ajax()) {
+            $data = DB::table('hotels')
+                ->leftJoin('countries', 'hotels.country', '=', 'countries.id')
+                ->select(
+                    'hotels.id as ID',
+                    'hotels.name as hotel_name',
+                    DB::raw("COALESCE(countries.name, 'N/A') as country_name")
+                )
+                ->orderByDesc('hotels.id')
+                ->get();
+
+            return Datatables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function($row){
+                    $editBtn = '<a class="btn btn-outline-primary btn-xs" title="Edit" href="javascript:void(0)" onclick="edit('.$row->ID.')"><i class="fa fa-edit"></i></a>';
+                    $deleteBtn = ' <a class="btn btn-outline-danger btn-xs" title="Delete" href="javascript:void(0)" onclick="del_rec(\''.$row->ID.'\', \''.url('Application_Setup/hotel').'/'.$row->ID.'\')"><i class="fa fa-trash"></i></a>';
+                    return '<div class="text-center hotel-actions">'.$editBtn.$deleteBtn.'</div>';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
     }
     /**
      * Display the specified resource.

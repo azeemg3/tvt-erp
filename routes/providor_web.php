@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Auth::routes();
-Route::group(['middleware' => ['auth','role:Providor']], function() {
+Route::group(['middleware' => ['auth','role:Providor|Admin']], function() {
     Route::prefix('providors')->group(function () {
         Route::get('/','Providors\DashboardController@index');
         Route::resource('hotel_providor',Providors\HotelController::class);

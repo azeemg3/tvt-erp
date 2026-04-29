@@ -154,6 +154,7 @@ Route::group(['middleware' => ['auth']], function() {
             Route::post('store_menu', 'RoleController@store_menu');
             Route::post('get_menu', 'RoleController@get_menu');
             Route::resource('users', UserController::class);
+            Route::match(['get', 'post'], 'get_users', 'UserController@get_data')->name('users.data');
             Route::resource('permission', PermissionController::class);
             Route::post('get_permission', 'PermissionController@get_data');
             Route::get('get_role_permission/{id}', 'PermissionController@get_role_permission');

@@ -5,8 +5,11 @@
             <input type="hidden" name="id" value="0">
             <div class="modal-content rounded-0 border-0">
                 <!-- Modal Header -->
-                <div class="modal-header rounded-0 bg-gradient-yellow">
+                <div class="modal-header rounded-0 bg-gradient-yellow py-2">
                     <h5 class="modal-title">Hotel Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <!-- Modal body -->
                 <div class="modal-body">
@@ -40,11 +43,12 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Modal footer -->
-                    <div class="clearfix"></div>
-                    <div class="modal-footer py-0">
-                        <button type="button" class="btn btn-sm btn-flat btn-success" onclick="save_rec()">Submit</button>
-                        <button type="button" class="btn btn-sm btn-flat btn-danger" data-dismiss="modal">Close</button>
+                </div>
+                <div class="modal-footer justify-content-between py-2">
+                    <small class="text-muted">Please complete required fields before submitting.</small>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-light border" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-sm btn-success" onclick="save_rec()">Submit</button>
                     </div>
                 </div>
             </div>

@@ -1,7 +1,62 @@
 @extends('layouts.app')
 @section('content')
+    <link href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet">
+    <style>
+        .hotel-page .hotel-card {
+            border: 1px solid #e9ecef;
+            box-shadow: 0 0.15rem 0.8rem rgba(17, 24, 39, 0.06);
+        }
+        .hotel-page .hotel-card .card-header {
+            background: #ffffff;
+            border-bottom: 1px solid #edf1f7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 1rem;
+        }
+        .hotel-page .hotel-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 0;
+            color: #1f2937;
+        }
+        .hotel-page .hotel-subtitle {
+            margin: 0.1rem 0 0;
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        .hotel-page .hotel-table thead th {
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+        .hotel-page .hotel-table tbody td {
+            vertical-align: middle;
+        }
+        .hotel-page .hotel-actions .btn {
+            min-width: 32px;
+        }
+        .hotel-page div.dataTables_wrapper div.dataTables_filter input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.2rem;
+            height: 30px;
+            padding: 0 8px;
+        }
+        .hotel-page .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #111827 !important;
+            border-color: #111827 !important;
+            color: #fff !important;
+        }
+        .hotel-page .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #374151 !important;
+            border-color: #374151 !important;
+            color: #fff !important;
+        }
+    </style>
     <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
+    <div class="content-wrapper hotel-page">
         <!-- Content Header (Page header) -->
         <section class="content-header">
             <div class="container-fluid">
@@ -20,25 +75,28 @@
         <section class="content">
             <div class="row">
                 <div class="col-12">
-                    <div class="card rounded-0">
-                        <!-- /.card-header -->
+                    <div class="card rounded-0 hotel-card">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="hotel-title">Hotel Listing</h3>
+                                <p class="hotel-subtitle">Manage hotel details with quick edit and delete actions.</p>
+                            </div>
+                            <button class="btn btn-sm btn-dark" onclick="add_new()">
+                                <i class="fa fa-plus mr-1"></i> Add Hotel
+                            </button>
+                        </div>
                         <div class="card-body">
-                            <button class="btn btn-xs btn-dark float-right" onclick="add_new()">Add New</button>
-                            <table id="example2" class="table table-bordered">
+                            <table id="example2" class="table table-bordered table-hover hotel-table data-table">
                                 <thead>
-                                <tr class="table-active">
+                                <tr>
                                     <th>#</th>
                                     <th>Name</th>
                                     <th>Country</th>
-                                    <th>Action</th>
+                                    <th class="text-center">Action</th>
                                 </tr>
                                 </thead>
-                                <tbody id="get_data"></tbody>
+                                <tbody></tbody>
                             </table>
-                        </div>
-                        <!-- /.card-body -->
-                        <div class="card-footer clearfix">
-                            <div class="pagination-panel"></div>
                         </div>
                     </div>
                     <!-- /.card -->
@@ -52,7 +110,9 @@
     <!-- /.content-wrapper -->
     @include('Setup.hotels.modal')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js" defer></script>
     <script>
+        var table;
         function add_new() {
             $("#new").modal();
             document.getElementById("form").reset();
@@ -62,6 +122,24 @@
         $(function () {
             //Initialize Select2 Elements
             $('.select2').select2();
+            table = $('.data-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: "{{ url('Application_Setup/get_hotels') }}",
+                    type: "POST",
+                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+                },
+                columns: [
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false},
+                    {data: 'hotel_name', name: 'hotel_name'},
+                    {data: 'country_name', name: 'country_name'},
+                    {data: 'action', name: 'action', searchable: false, orderable: false},
+                ],
+                order: [[1, 'asc']],
+                pageLength: 15,
+                lengthMenu: [[10, 15, 25, 50], [10, 15, 25, 50]]
+            });
 
         });
         function save_rec() {
@@ -77,7 +155,7 @@
                     toastr.success('Operation Successfully..');
                     document.getElementById("form").reset();
                     $("#new").modal('hide');
-                    get_data();
+                    table.ajax.reload(null, false);
                     $("#loader").hide();
                 },error:function(ajaxcontent) {
                     vali=ajaxcontent.responseJSON.errors;
@@ -87,31 +165,6 @@
                         toastr.error(value);
                     });
                     $("#loader").hide();
-                }
-            })
-        }
-        get_data();
-        function get_data(page){
-            $.ajax({
-                url:"{{ url('Application_Setup/get_hotels') }}?page="+page,
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                type:"POST",
-                dataType:"JSON",
-                success:function (data) {
-                    htmlData='';
-                    for(i in data.data){
-                        htmlData+='<tr id="'+data.data[i].id+'">';
-                        htmlData+='<td>'+(Number(i)+1)+'</td>';
-                        htmlData+='<td>'+data.data[i].name+'</td>';
-                        htmlData+='<td>'+data.data[i].country.name+'</td>';
-                        htmlData+='<td>';
-                        htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit('+data.data[i].id+')"><i class="fa fa-edit"></i> </a>';
-                        htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Application_Setup/hotel') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';
-                        htmlData+='</td>';
-                        htmlData+='</tr>';
-                    }
-                    $("#get_data").html(htmlData);
-                    pagination(data.total, data.per_page, data.current_page, data.to ,get_data);
                 }
             })
         }

@@ -7,6 +7,7 @@ use Spatie\Permission\Models\Role;
 use DB;
 use Hash;
 use Illuminate\Support\Arr;
+use DataTables;
 class UserController extends Controller
 {
     function __construct()
@@ -23,9 +24,48 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $data = User::where('is_agent',0)->orderBy('id','DESC')->paginate(50);
-        return view('users.index',compact('data'))
-            ->with('i', ($request->input('page', 1) - 1) * 5);
+        return view('users.index');
+    }
+    public function get_data(Request $request)
+    {
+        $data = User::with('roles')
+            ->where('is_agent', 0)
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        return DataTables::of($data)
+            ->addIndexColumn()
+            ->addColumn('roles', function ($row) {
+                $roles = $row->getRoleNames();
+                if ($roles->isEmpty()) {
+                    return '<span class="text-muted">N/A</span>';
+                }
+
+                $html = '';
+                foreach ($roles as $role) {
+                    $html .= '<label class="badge badge-success mr-1">' . e($role) . '</label>';
+                }
+                return $html;
+            })
+            ->addColumn('user_status', function ($row) {
+                return $row->status == 0 ? 'Active' : 'Inactive';
+            })
+            ->addColumn('action', function ($row) {
+                $showUrl = route('users.show', $row->id);
+                $editUrl = route('users.edit', $row->id);
+                $deleteUrl = route('users.destroy', $row->id);
+                $token = csrf_token();
+
+                return '<a class="btn btn-xs btn-info" href="' . $showUrl . '"><i class="fa fa-eye"></i></a>
+                        <a class="btn btn-xs btn-primary" href="' . $editUrl . '"><i class="fa fa-edit"></i></a>
+                        <form method="POST" action="' . $deleteUrl . '" style="display:inline">
+                            <input type="hidden" name="_token" value="' . $token . '">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="submit" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i></button>
+                        </form>';
+            })
+            ->rawColumns(['roles', 'action'])
+            ->make(true);
     }
     /**
      * Show the form for creating a new resource.

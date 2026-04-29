@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    <link href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet">
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
@@ -25,7 +26,7 @@
                     <div class="card">
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <table id="example2" class="table table-bordered table-hover">
+                            <table id="example2" class="table table-bordered table-hover data-table">
                                 <thead>
                                 <tr>
                                     <th>No</th>
@@ -36,33 +37,7 @@
                                     <th width="280px">Action</th>
                                 </tr>
                                 </thead>
-                                <tbody>
-                                @foreach ($data as $key => $user)
-                                    <tr>
-                                        <td>{{ ++$i }}</td>
-                                        <td>{{ $user->name }}</td>
-                                        <td>{{ $user->email }}</td>
-                                        <td>
-                                            @if(!empty($user->getRoleNames()))
-                                                @foreach($user->getRoleNames() as $v)
-                                                    <label class="badge badge-success">{{ $v }}</label>
-                                                @endforeach
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if($user->status==0) Active @endif
-                                            @if($user->status==1) Inactive @endif
-                                        </td>
-                                        <td>
-                                            <a class="btn btn-xs btn-info" href="{{ route('users.show',$user->id) }}"><i class="fa fa-eye"></i></a>
-                                            <a class="btn btn-xs btn-primary" href="{{ route('users.edit',$user->id) }}"><i class="fa fa-edit"></i></a>
-                                            {!! Form::open(['method' => 'DELETE','route' => ['users.destroy', $user->id],'style'=>'display:inline']) !!}
-                                            <button type="submit" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i> </button>
-                                            {!! Form::close() !!}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                </tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                         <!-- /.card-body -->
@@ -83,5 +58,54 @@
         <!-- /.content -->
     </div>
     <!-- /.content-wrapper -->
-    <script src="{{ URL::asset('plugins/jquery/jquery.min.js') }}"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js" defer></script>
+    <script>
+        (function initUsersDatatable() {
+            if (typeof window.jQuery === 'undefined' || !jQuery.fn || !jQuery.fn.DataTable) {
+                return setTimeout(initUsersDatatable, 150);
+            }
+
+            var usersTable = $('.data-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: {
+                    url: "{{ route('users.data') }}",
+                    type: "GET",
+                    error: function (xhr, error, thrown) {
+                        var msg = 'Data load failed. HTTP ' + xhr.status + ' - ' + (xhr.responseText ? xhr.responseText.substring(0, 200) : thrown);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(msg);
+                        } else {
+                            alert(msg);
+                        }
+                    }
+                },
+                columns: [
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', searchable: false, orderable: false},
+                    {data: 'name', name: 'name'},
+                    {data: 'email', name: 'email'},
+                    {data: 'roles', name: 'roles', orderable: false},
+                    {data: 'user_status', name: 'user_status'},
+                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                ],
+                pageLength: 25,
+                language: {
+                    emptyTable: "No users found or data source not reachable."
+                },
+                order: [[1, 'asc']]
+            });
+
+            usersTable.on('xhr.dt', function (e, settings, json, xhr) {
+                if (!json || typeof json.data === 'undefined') {
+                    var raw = xhr && xhr.responseText ? xhr.responseText.substring(0, 200) : 'No response body';
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Unexpected response format from users.data: ' + raw);
+                    } else {
+                        alert('Unexpected response format from users.data: ' + raw);
+                    }
+                }
+            });
+        })();
+    </script>
 @endsection<!-- jQuery -->
