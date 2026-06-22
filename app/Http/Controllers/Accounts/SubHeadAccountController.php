@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounts;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\AccountCodeHelper;
 use App\Models\Accounts\SubHeadAccount;
 use Illuminate\Http\Request;
 use DB;
@@ -52,8 +53,10 @@ class SubHeadAccountController extends Controller
         DB::beginTransaction();
         try {
             if ($id == '' || $id == 0) {
+                $data['code'] = AccountCodeHelper::nextSubHeadCode((int) $request->HID);
                 SubHeadAccount::create($data);
             } else {
+                unset($data['code']);
                 SubHeadAccount::where('id', $id)->update($data);
             }
             DB::commit();

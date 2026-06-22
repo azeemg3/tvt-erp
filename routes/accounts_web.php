@@ -25,7 +25,8 @@ Route::group(['middleware' => ['auth']], function() {
         Route::resource('subhead_accounts', Accounts\SubHeadAccountController::class);
         Route::post('get_subhead_accounts', 'Accounts\SubHeadAccountController@get_data');
         Route::resource('trans_accounts', Accounts\TransAccountController::class);
-        Route::post('get_trans_accounts', 'Accounts\TransAccountController@get_data');
+        Route::match(['get', 'post'], 'get_trans_accounts', 'Accounts\TransAccountController@get_data');
+        Route::get('next_trans_account_code', 'Accounts\TransAccountController@nextCode');
         Route::prefix('vouchers')->group(function (){
             Route::resource('receipt_vouchers', Accounts\ReceiptVoucherController::class);
             Route::post('get_receipt_vouchers', 'Accounts\ReceiptVoucherController@get_data');

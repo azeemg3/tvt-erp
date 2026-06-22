@@ -10,7 +10,7 @@ class DesignationController extends Controller
 {
     function __construct()
     {
-        $this->middleware('permission:ticket_source_view', ['only' => ['index']]);
+        $this->middleware('permission:designation_view', ['only' => ['index']]);
     }
     /**
      * Display a listing of the resource.

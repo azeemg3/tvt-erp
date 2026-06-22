@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Events\NotificationEvent;
 use App\Helpers\Account;
+use App\Helpers\AccountCodeHelper;
 use App\Models\Accounts\TransactionAccount;
 use App\Models\Lms\LeadHotel;
 use App\Models\Lms\OtherSale;
@@ -245,6 +246,7 @@ class LeadController extends Controller
         $data['PID']=2;
         $data['editable']=1;
         $data['Parent_Type']=$request->leadId;
+        $data['code'] = AccountCodeHelper::nextTransactionCode(2);
         try {
             $ret = TransactionAccount::create($data);
             Lead::where('id', $request->leadId)->update(['ledger'=>$ret->id]);

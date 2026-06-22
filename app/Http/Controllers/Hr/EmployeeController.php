@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use App\Models\Employee;
 use App\Models\User;
+use App\Helpers\AccountCodeHelper;
 use App\Models\Accounts\TransactionAccount;
 use DB;
 use Arr;
@@ -90,6 +91,7 @@ class EmployeeController extends Controller
                 $ret = Employee::create($data);
                 $tData['Parent_Type']=$ret->id;
                 $tData['created_by']=Auth::user()->id;
+                $tData['code'] = AccountCodeHelper::nextTransactionCode(6);
                 TransactionAccount::create($tData);
             } else {
                 $UID=Employee::find($id)->value('UID');

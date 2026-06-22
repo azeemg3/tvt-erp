@@ -67,7 +67,7 @@
 		<!-- /.content-header -->
 
 		<!-- Main content -->
-        @if(Auth::user()->getRoleNames()[0]=='Admin')
+        @if(Auth::user()->isAdmin())
 		<section class="content home-main">
 			<div class="container-fluid">
 				<!-- Small boxes (Stat box) -->

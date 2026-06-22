@@ -20,7 +20,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Code</label>
-                                <input type="text" name="code" value="{{ $code }}" class="form-control form-control-sm" placeholder="e,g 012">
+                                <input type="text" name="code" value="" class="form-control form-control-sm" placeholder="Select account type" readonly>
+                                <small class="text-muted">Auto-generated from subhead (e.g. 0101011)</small>
                             </div>
                         </div>
                         <!--col-->

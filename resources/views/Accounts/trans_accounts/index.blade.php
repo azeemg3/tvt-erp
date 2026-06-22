@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    <link href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet">
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
@@ -24,36 +25,24 @@
                     <div class="card rounded-0">
                         <!-- /.card-header -->
                         <div class="card-body">
-                            <form id="search-form">
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <input type="text" class="form-control form-control-sm" name="trans_acc" placeholder="Search with Name">
-                                </div>
-                                <div class="col-md-2">
-                                    <button  type="button" class="btn btn-flat btn-xs btn-info" onclick="get_data(1)"><i class="fas fa-search"></i> </button>
-                                </div>
+                            <div class="mb-2 text-right">
+                                <button type="button" class="btn btn-xs btn-dark" onclick="add_new()">Add New</button>
                             </div>
-                            </form>
-                            <button class="btn btn-xs btn-dark float-right" onclick="add_new()">Add New</button>
-                            <table id="example2" class="table table-bordered table-hover">
+                            <table class="table table-bordered table-hover data-table">
                                 <thead>
                                 <tr>
                                     <th>#</th>
                                     <th>Code</th>
                                     <th>Trnsaction A/C Name</th>
-                                    <th>subhead A/C Name</th>
+                                    <th>Subhead A/C Name</th>
                                     <th>Current Balance</th>
                                     <th>Action</th>
                                 </tr>
                                 </thead>
-                                <tbody id="get_data"></tbody>
+                                <tbody></tbody>
                             </table>
                         </div>
                         <!-- /.card-body -->
-                        <div class="card-footer clearfix">
-                            <div class="pagination-panel"></div>
-                        </div>
-                        </div>
                     </div>
                     <!-- /.card -->
                 </div>
@@ -65,15 +54,70 @@
     </div>
     <!-- /.content-wrapper -->
     @include('Accounts.trans_accounts.modal')
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js" defer></script>
     <script>
+        var table;
+
+        (function initTransAccountsDatatable() {
+            if (typeof window.jQuery === 'undefined' || !jQuery.fn || !jQuery.fn.DataTable) {
+                return setTimeout(initTransAccountsDatatable, 150);
+            }
+
+            table = $('.data-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: {
+                    url: "{{ url('Accounts/get_trans_accounts') }}",
+                    type: "GET"
+                },
+                columns: [
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                    {data: 'code', name: 'transaction_accounts.code'},
+                    {data: 'Trans_Acc_Name', name: 'transaction_accounts.Trans_Acc_Name'},
+                    {data: 'subhead_name', name: 'subhead_name'},
+                    {data: 'balance', name: 'balance', orderable: false, searchable: false},
+                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                ],
+                pageLength: 25,
+                order: [[1, 'asc']]
+            });
+        })();
+
+        function reload_table() {
+            if (table) {
+                table.ajax.reload();
+            }
+        }
+
         function add_new() {
             $("#new").modal();
             $(".select2").select2();
             document.getElementById("form").reset();
             $("#form input[name~='id']").val(0);
+            $("#form input[name~='code']").val('');
             $("#new").find('.btn-success').text('Submit');
         }
+        function fetch_next_code() {
+            var pid = $("#form select[name~='PID']").val();
+            if (!pid) {
+                $("#form input[name~='code']").val('');
+                return;
+            }
+            $.ajax({
+                url: "{{ url('Accounts/next_trans_account_code') }}",
+                data: { PID: pid },
+                dataType: "JSON",
+                success: function (data) {
+                    $("#form input[name~='code']").val(data.code);
+                }
+            });
+        }
+        $(document).on('change', "#form select[name~='PID']", function () {
+            if ($("#form input[name~='id']").val() == 0) {
+                fetch_next_code();
+            }
+        });
         function save_rec() {
             $("#loader").show();
             $.ajax({
@@ -87,46 +131,14 @@
                     toastr.success('Operation Successfully..');
                     document.getElementById("form").reset();
                     $("#new").modal('hide');
-                    get_data();
+                    reload_table();
                     $("#loader").hide();
                 },error:function(ajaxcontent) {
                     vali=ajaxcontent.responseJSON.errors;
-                    var errors='';
                     $.each(vali, function( index, value ) {
                         $("#form input[name~='" + index + "']").css('border', '1px solid red');
                         toastr.error(value);
                     });
-                    $("#loader").hide();
-                }
-            })
-        }
-        get_data();
-        function get_data(page){
-            $("#loader").show();
-            $.ajax({
-                url:"{{ url('Accounts/get_trans_accounts') }}?page="+page,
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                type:"POST",
-                dataType:"JSON",
-                data:$("#search-form").serialize(),
-                success:function (data) {
-                    htmlData='';
-                    for(i in data.data){
-                        htmlData+='<tr id="'+data.data[i].id+'">';
-                        htmlData+='<td>'+(Number(i)+1)+'</td>';
-                        htmlData+='<td>'+sn(Number(data.data[i].code))+'</td>';
-                        htmlData+='<td>'+data.data[i].Trans_Acc_Name+'</td>';
-                        htmlData+='<td>'+data.data[i].subhead.name+'</td>';
-                        htmlData+='<td>0.00</td>';
-                        htmlData+='<td>';
-                        htmlData += '<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit(' + data.data[i].id + ')"><i class="fa fa-edit"></i> </a>';
-
-                        htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data.data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';
-                        htmlData+='</td>';
-                        htmlData+='</tr>';
-                    }
-                    $("#get_data").html(htmlData);
-                    pagination(data.total, data.per_page, data.current_page, data.to ,get_data);
                     $("#loader").hide();
                 }
             })
@@ -147,4 +159,4 @@
             })
         }
     </script>
-@endsection<!-- jQuery -->
+@endsection

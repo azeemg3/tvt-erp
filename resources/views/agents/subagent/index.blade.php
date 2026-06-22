@@ -32,7 +32,7 @@
                                     <button type="text" class="btn btn-flat btn-xs btn-dark"><i class="fas fa-search"></i> </button>
                                 </div>
                             </div>
-                            {{--<button class="btn btn-xs btn-dark float-right" onclick="add_new()">Add New</button>--}}
+                            <button class="btn btn-xs btn-dark float-right" onclick="add_new()">Add New</button>
                             <table id="example2" class="table table-bordered table-hover">
                                 <thead>
                                 <tr>
@@ -68,17 +68,22 @@
     @include('agents.subagent.modal')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
+        $(function () {
+            subagent(1);
+        });
         function add_new() {
             $("#new").modal();
             $(".select2").select2();
             document.getElementById("form").reset();
             $("#form input[name~='id']").val(0);
+            $("#form select[name~='agent_type']").val(1);
+            subagent(1);
             $("#new").find('.btn-success').text('Submit');
         }
         function save_rec() {
             $("#loader").show();
             $.ajax({
-                url:"{{ route('subadmin.store') }}",
+                url:"{{ route('agent.store') }}",
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 type:"POST",
                 dataType:"JSON",
@@ -91,11 +96,21 @@
                     get_data();
                     $("#loader").hide();
                 },error:function(ajaxcontent) {
-                    vali=ajaxcontent.responseJSON.errors;
-                    var errors='';
+                    var vali = ajaxcontent.responseJSON && ajaxcontent.responseJSON.errors;
+                    if (!vali) {
+                        toastr.error('Unable to save agent. Please try again.');
+                        $("#loader").hide();
+                        return;
+                    }
+                    if (vali.error) {
+                        toastr.error(vali.error);
+                        $("#loader").hide();
+                        return;
+                    }
                     $.each(vali, function( index, value ) {
+                        var msg = Array.isArray(value) ? value[0] : value;
                         $("#form input[name~='" + index + "']").css('border', '1px solid red');
-                        toastr.error(value);
+                        toastr.error(msg);
                     });
                     $("#loader").hide();
                 }
@@ -114,7 +129,7 @@
                     for(i in data.data){
                         htmlData+='<tr id="'+data.data[i].id+'">';
                         htmlData+='<td>'+(Number(i)+1)+'</td>';
-                        htmlData+='<td>'+data.data[i].subagent.agent_name+'</td>';
+                        htmlData+='<td>'+(data.data[i].subagent ? data.data[i].subagent.agent_name : '-')+'</td>';
                         htmlData+='<td>'+data.data[i].agent_name+'</td>';
                         htmlData+='<td>'+data.data[i].agent_mobile+'</td>';
                         htmlData+='<td>'+data.data[i].agent_email+'</td>';

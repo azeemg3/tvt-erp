@@ -26,6 +26,12 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
         Passport::routes();
-        //
+
+        // Admin role bypasses all permission checks (menus, @can, route middleware).
+        Gate::before(function ($user, $ability) {
+            if ($user && method_exists($user, 'hasRole') && $user->hasRole('Admin')) {
+                return true;
+            }
+        });
     }
 }

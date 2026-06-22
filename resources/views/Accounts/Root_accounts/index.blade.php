@@ -32,6 +32,7 @@
                                 <thead>
                                 <tr>
                                     <th>#</th>
+                                    <th>Code</th>
                                     <th>Account Name</th>
                                     <th>Action</th>
                                 </tr>
@@ -75,6 +76,7 @@
                     for(i in data.data){
                         htmlData+='<tr id="'+data.data[i].id+'">';
                         htmlData+='<td>'+(Number(i)+1)+'</td>';
+                        htmlData+='<td>'+(data.data[i].code || '')+'</td>';
                         htmlData+='<td>'+data.data[i].name+'</td>';
                          htmlData+='<td>';
                         htmlData+='N/A';

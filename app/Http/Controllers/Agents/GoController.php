@@ -9,6 +9,7 @@ use Auth;
 use App\Models\Accounts\Agent;
 use Hash;
 use App\Models\User;
+use App\Helpers\AccountCodeHelper;
 use App\Models\Accounts\TransactionAccount;
 use Illuminate\Support\Arr;
 class GoController extends Controller
@@ -76,6 +77,7 @@ class GoController extends Controller
                 $user = User::create($uData);
                 $user->assignRole('GO');
                 $tData['Parent_Type']=$ret->id;
+                $tData['code'] = AccountCodeHelper::nextTransactionCode(21);
                 TransactionAccount::create($tData);
                 Agent::where('id', $ret->id)->update(['agent_code'=>'GO-'.$ret->id,'UID'=>$user->id]);
             } else {
@@ -92,6 +94,7 @@ class GoController extends Controller
                     $user = User::create($uData);
                     $user->assignRole('Agent');
                     $tData['Parent_Type']=$agent->id;
+                    $tData['code'] = AccountCodeHelper::nextTransactionCode(21);
                     TransactionAccount::create($tData);
                     Agent::where('id', $id)->update(['UID'=>$user->id]);
                 }else {

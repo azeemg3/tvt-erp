@@ -12,7 +12,7 @@ class UmrahDraftController extends Controller
 {
     function __construct()
     {
-        $this->middleware('permission:ticket_source_view', ['only' => ['index']]);
+        $this->middleware('permission:umrah_trip_view', ['only' => ['index']]);
     }
     /**
      * Display a listing of the resource.

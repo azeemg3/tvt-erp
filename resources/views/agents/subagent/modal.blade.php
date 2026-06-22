@@ -36,6 +36,11 @@
                         </div>
                         <!--col-->
                         <div class="form-group col-md-4">
+                            <label for="exampleInputEmail1">Password<span class="password-required">*</span></label>
+                            <input type="password" name="password" class="form-control form-control-sm" placeholder="Enter login password...">
+                        </div>
+                        <!--col-->
+                        <div class="form-group col-md-4">
                             <label for="exampleInputEmail1">Country</label>
                             <select name="agent_country" class="form-control form-control-sm select2">
                                 {!! App\Models\Country::dropdown() !!}
@@ -66,7 +71,7 @@
                             <label for="exampleInputEmail1">Agent Type</label>
                             <select name="agent_type" class="form-control form-control-sm" onchange="subagent(this.value)">
                                 <option value="0">Admin Agent</option>
-                                <option value="1">Subagent</option>
+                                <option value="1" selected>Subagent</option>
                             </select>
                         </div>
                         <!--col-->

@@ -9,13 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 class SubHeadAccount extends Model
 {
     use HasFactory;
-    protected $fillable=['name', 'HID'];
+    protected $fillable=['name', 'HID', 'code'];
+
+    public function head(){
+        return $this->belongsTo(HeadAccount::class, 'HID', 'id');
+    }
 
     public static function dropdown(){
         $list='';
         $res=self::all();
         foreach ($res as $re) {
-            $list.='<option value="'.$re->id.'">'.$re->name.'</option>';
+            $label = ($re->code ? $re->code.' - ' : '').$re->name;
+            $list.='<option value="'.$re->id.'">'.$label.'</option>';
         }
         return $list;
     }

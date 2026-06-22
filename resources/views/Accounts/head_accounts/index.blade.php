@@ -32,6 +32,7 @@
                                 <thead>
                                 <tr>
                                     <th>#</th>
+                                    <th>Code</th>
                                     <th>Head A/C Name</th>
                                     <th>Root A/C Name</th>
                                     <th>Action</th>
@@ -76,6 +77,7 @@
                     for(i in data.data){
                         htmlData+='<tr id="'+data.data[i].id+'">';
                         htmlData+='<td>'+(Number(i)+1)+'</td>';
+                        htmlData+='<td>'+(data.data[i].code || '')+'</td>';
                         htmlData+='<td>'+data.data[i].name+'</td>';
                         htmlData+='<td>'+data.data[i].root.name+'</td>';
                         htmlData+='<td>';

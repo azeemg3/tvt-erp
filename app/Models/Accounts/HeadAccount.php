@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class HeadAccount extends Model
 {
     use HasFactory;
-    protected $fillable=['RID', 'name'];
+    protected $fillable=['RID', 'name', 'code'];
 
     public function root(){
         return $this->belongsTo(RootAccount::class, 'RID', 'id');

@@ -53,16 +53,13 @@ class HomeController extends Controller
 //        dd();
 //        UmrahVoucherEmailJob::dispatch()->delay(now()->addSeconds(2));
 //        Mail::to('azeemkhalidg3@gmail.com')->send(new UmrahVouhcerEmail());
-        if(Auth::user()->getRoleNames()[0]=='Admin') {
-            $this->middleware('permission:dashboard_view', ['only' => ['index']]);
+        if (Auth::user()->isAdmin()) {
             return view('home');
-        }else if(Auth::user()->getRoleNames()[0]=='Accountant'){
+        } elseif (Auth::user()->hasRole('Accountant')) {
             return view('Accounts.index');
         }
-        else{
-//            return redirect()->route('lead.index');
-            return view('home');
-        }
+
+        return view('home');
     }
     //all main menu noticfication
     public function menu_notification(){

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Accounts;
 
+use App\Helpers\AccountCodeHelper;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Accounts\TransactionAccount;
+use DataTables;
+use Illuminate\Http\Request;
 use DB;
-use Config;
+
 class TransAccountController extends Controller
 {
     /**
@@ -16,8 +18,7 @@ class TransAccountController extends Controller
      */
     public function index()
     {
-        $code=TransactionAccount::orderBy('id','DESC')->first()->code+1;
-        return view('Accounts.trans_accounts.index',compact('code'));
+        return view('Accounts.trans_accounts.index');
     }
 
     /**
@@ -53,28 +54,66 @@ class TransAccountController extends Controller
         DB::beginTransaction();
         try {
             if ($id == '' || $id == 0) {
+                $data['code'] = AccountCodeHelper::nextTransactionCode((int) $request->PID);
                 TransactionAccount::create($data);
             } else {
+                unset($data['code']);
                 TransactionAccount::where('id', $id)->update($data);
             }
             DB::commit();
             return response()->json(['success' => 'Added new record Successfully.']);
 
         }catch (\Illuminate\Database\QueryException $e){
-            $code = $e->errorInfo[1];
+            DB::rollBack();
             return response()->json([
                 'success' => 'false',
                 'errors'  => $e->errorInfo,
             ], 400);
         }
     }
-    //listing data
-    public function get_data(Request $request){
-        return TransactionAccount::with('subhead')
-            ->when($request->trans_acc, function($query) use ($request){
-                $query->where('Trans_Acc_Name', 'LIKe', '%'.$request->trans_acc.'%');
-            })
-            ->orderByDesc('id')->paginate(Config::get('constant.pagination_count'));
+
+    public function nextCode(Request $request)
+    {
+        $request->validate(['PID' => 'required|exists:sub_head_accounts,id']);
+
+        return response()->json([
+            'code' => AccountCodeHelper::nextTransactionCode((int) $request->PID),
+        ]);
+    }
+
+    //listing data (DataTables server-side)
+    public function get_data(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = DB::table('transaction_accounts')
+                ->leftJoin('sub_head_accounts', 'transaction_accounts.PID', '=', 'sub_head_accounts.id')
+                ->select(
+                    'transaction_accounts.id',
+                    'transaction_accounts.code',
+                    'transaction_accounts.Trans_Acc_Name',
+                    'sub_head_accounts.name as subhead_name'
+                )
+                ->orderBy('transaction_accounts.code');
+
+            return DataTables::of($query)
+                ->addIndexColumn()
+                ->orderColumn('subhead_name', 'sub_head_accounts.name $1')
+                ->filterColumn('subhead_name', function ($query, $keyword) {
+                    $query->where('sub_head_accounts.name', 'like', '%'.$keyword.'%');
+                })
+                ->addColumn('balance', function () {
+                    return '0.00';
+                })
+                ->addColumn('action', function ($row) {
+                    $deleteUrl = url('Accounts/trans_accounts/'.$row->id);
+                    $btn = '<a class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit('.$row->id.')"><i class="fa fa-edit"></i></a>';
+                    $btn .= ' <a class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''.$row->id.'\', \''.$deleteUrl.'\')"><i class="fa fa-trash"></i></a>';
+
+                    return $btn;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
     }
     /**
      * Display the specified resource.

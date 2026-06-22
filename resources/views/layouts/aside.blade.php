@@ -30,6 +30,7 @@ $visa=['visa_rate'];
 $umrah_reports=['arrival_report','departure_report','checkin_report','checkout_report'];
 $providors=['providors','hotel_providor','visa_providor','transport_providor'];
 $acc_providor=['account_statement'];
+$setup_account=['clients','vendors'];
 ?>
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -62,7 +63,7 @@ $acc_providor=['account_statement'];
                         </a>
                     </li>
                 @endcan
-                @if(Auth::user()->getRoleNames()[0]=='Providor' || Auth::user()->getRoleNames()[0]=='Admin')
+                @if(Auth::user()->hasRole('Providor') || Auth::user()->isAdmin())
                 <li class="nav-item has-treeview <?php if(in_array(Request::segment(1), $providors)) echo 'menu-open'; ?>">
                     <a href="#" class="nav-link">
                         <i class='nav-icon fas fa-chart-bar fa-xs'></i>
@@ -145,7 +146,7 @@ $acc_providor=['account_statement'];
                     </ul>
                 </li>
                 @endif
-                @can('statistics_view')
+                {{-- @can('statistics_view')
                     <li class="nav-item has-treeview <?php if(in_array(Request::segment(2), $statistics)) echo 'menu-open'; ?>">
                         <a href="#" class="nav-link">
                             <i class='nav-icon fas fa-chart-bar fa-xs'></i>
@@ -187,7 +188,7 @@ $acc_providor=['account_statement'];
                             </li>
                         </ul>
                     </li>
-                @endcan
+                @endcan --}}
                 @can('lms_view')
                     <!--<li class="nav-item has-treeview <?php if(in_array(Request::segment(2), $lead)) echo 'menu-open'; ?>">
                         <a href="#" class="nav-link">
@@ -870,7 +871,36 @@ $acc_providor=['account_statement'];
                         </ul>
                     </li>
                 @endcan
-                @if(Auth::user()->getRoleNames()[0]=='Admin')
+                @can('setup_account_view')
+                    <li class="nav-item has-treeview <?php if(in_array(Request::segment(1), $setup_account)) echo 'menu-open'; ?>">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-address-book fa-xs"></i>
+                            <p>
+                                Setup Account
+                                <i class="nav-icon fas fa-angle-left right"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @can('client_view')
+                                <li class="nav-item">
+                                    <a href="{{ route('clients.index') }}" class="nav-link {{ (request()->is('clients') || request()->is('clients/*')) ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                        <p>Client List</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('vendor_view')
+                                <li class="nav-item">
+                                    <a href="{{ route('vendors.index') }}" class="nav-link {{ (request()->is('vendors') || request()->is('vendors/*')) ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                        <p>Supplier/Vendor List</p>
+                                    </a>
+                                </li>
+                            @endcan
+                        </ul>
+                    </li>
+                @endcan
+                @if(Auth::user()->isAdmin())
                     <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $umrah_reports)) echo 'menu-open'; ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-chart-area"></i>

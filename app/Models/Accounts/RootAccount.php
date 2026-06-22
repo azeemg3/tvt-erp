@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class RootAccount extends Model
 {
     use HasFactory;
-    protected $fillable=['name'];
+    protected $fillable=['name', 'code'];
     public static function dropdown(){
         $result=self::all();
         $list='';

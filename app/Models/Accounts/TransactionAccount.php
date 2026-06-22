@@ -9,7 +9,8 @@ class TransactionAccount extends Model
 {
     use HasFactory;
     protected $fillable=['Trans_Acc_Name', 'PID', 'Parent_Type', 'OB', 'OB_Type',
-        'BID', 'Created_BY', 'Updated_By', 'Last_Activity','code'];
+        'BID', 'Created_BY', 'Updated_By', 'Last_Activity','code',
+        'reference_id', 'reference_type', 'status', 'editable'];
 
     public function subhead(){
         return $this->belongsTo(SubHeadAccount::class,'PID', 'id');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agents;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Helpers\AccountCodeHelper;
 use App\Models\Accounts\TransactionAccount;
 use App\Models\Accounts\Agent;
 use DB;
@@ -88,7 +89,7 @@ class SubAdminController extends Controller
                 $uData['password'] = Hash::make($request->password);
                 $user = User::create($uData);
                 $user->assignRole('Agent');
-                $tData['code']=TransactionAccount::orderBy('id','DESC')->first()->code+1;
+                $tData['code'] = AccountCodeHelper::nextTransactionCode(21);
                 TransactionAccount::create($tData);
                 Agent::where('id', $ret->id)->update(['UID'=>$user->id]);
                 DB::commit();
@@ -105,6 +106,7 @@ class SubAdminController extends Controller
                     $user->assignRole('Agent');
                     $tData['Parent_Type']=$agent->id;
                     if($request->agent_type==0) {
+                        $tData['code'] = AccountCodeHelper::nextTransactionCode(21);
                         TransactionAccount::create($tData);
                     }
                     Agent::where('id', $id)->update(['UID'=>$user->id]);

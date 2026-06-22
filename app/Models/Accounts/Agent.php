@@ -11,7 +11,7 @@ class Agent extends Model
     protected $fillable=['agent_name', 'agent_mobile', 'agent_email', 'agent_country',
         'agent_city', 'agent_address', 'agent_other_details', 'PID', 'created_by',
         'updated_by','agentID','agent_type','status','agent_code','UID','agent_province',
-        'ARID','mosqueID','seen'];
+        'ARID','mosqueID','seen','assign_products'];
 
 
     public static function dropdown($id=0){

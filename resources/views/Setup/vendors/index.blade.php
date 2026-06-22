@@ -7,13 +7,13 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0 text-dark" style="font-size:1.4rem;">Client List</h1>
+                        <h1 class="m-0 text-dark" style="font-size:1.4rem;">Supplier / Vendor List</h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
                             <li class="breadcrumb-item">Setup Account</li>
-                            <li class="breadcrumb-item active">Clients</li>
+                            <li class="breadcrumb-item active">Vendors</li>
                         </ol>
                     </div>
                 </div>
@@ -24,17 +24,17 @@
                 <div class="col-12">
                     <div class="card rounded-0">
                         <div class="card-header">
-                            <h3 class="card-title pt-1">Clients</h3>
+                            <h3 class="card-title pt-1">Vendors</h3>
                             <div class="card-tools">
-                                <a href="{{ route('clients.export.excel') }}" class="btn btn-success btn-xs">
+                                <a href="{{ route('vendors.export.excel') }}" class="btn btn-success btn-xs">
                                     <i class="fa fa-file-excel"></i> Excel
                                 </a>
-                                <a href="{{ route('clients.export.pdf') }}" class="btn btn-danger btn-xs">
+                                <a href="{{ route('vendors.export.pdf') }}" class="btn btn-danger btn-xs">
                                     <i class="fa fa-file-pdf"></i> PDF
                                 </a>
-                                @can('client_create')
-                                    <a href="{{ route('clients.create') }}" class="btn btn-dark btn-xs">
-                                        <i class="fa fa-plus"></i> Add Client
+                                @can('vendor_create')
+                                    <a href="{{ route('vendors.create') }}" class="btn btn-dark btn-xs">
+                                        <i class="fa fa-plus"></i> Add Vendor
                                     </a>
                                 @endcan
                             </div>
@@ -46,13 +46,13 @@
                                     <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Client Code</th>
-                                        <th>Client Name</th>
+                                        <th>Vendor Code</th>
+                                        <th>Vendor Name</th>
+                                        <th>Vendor Type</th>
+                                        <th>Contact Person</th>
                                         <th>Mobile</th>
-                                        <th>Email</th>
-                                        <th>Category</th>
                                         <th>Credit Limit</th>
-                                        <th>Recovery Officer</th>
+                                        <th>Credit Days</th>
                                         <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
@@ -67,34 +67,29 @@
         </section>
     </div>
 
-    <form id="delete-form" method="POST" style="display:none;">
-        @csrf
-        @method('DELETE')
-    </form>
-
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js" defer></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js" defer></script>
     <script>
         var table;
-        (function initClientsDatatable() {
+        (function initVendorsDatatable() {
             if (typeof window.jQuery === 'undefined' || !jQuery.fn || !jQuery.fn.DataTable) {
-                return setTimeout(initClientsDatatable, 150);
+                return setTimeout(initVendorsDatatable, 150);
             }
             table = $('.data-table').DataTable({
                 processing: true,
                 serverSide: true,
                 destroy: true,
-                ajax: "{{ route('clients.data') }}",
+                ajax: "{{ route('vendors.data') }}",
                 columns: [
                     {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
-                    {data: 'client_code', name: 'clients.client_code'},
-                    {data: 'client_name', name: 'clients.client_name'},
-                    {data: 'mobile', name: 'clients.mobile'},
-                    {data: 'email', name: 'clients.email'},
-                    {data: 'category', name: 'clients.category'},
-                    {data: 'credit_limit', name: 'clients.credit_limit'},
-                    {data: 'recovery_officer', name: 'recovery_officer'},
-                    {data: 'status_badge', name: 'clients.status'},
+                    {data: 'vendor_code', name: 'vendor_code'},
+                    {data: 'vendor_name', name: 'vendor_name'},
+                    {data: 'vendor_type', name: 'vendor_type'},
+                    {data: 'contact_person', name: 'contact_person'},
+                    {data: 'mobile', name: 'mobile'},
+                    {data: 'credit_limit', name: 'credit_limit'},
+                    {data: 'credit_days', name: 'credit_days'},
+                    {data: 'status_badge', name: 'status'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
                 order: [[0, 'asc']],
@@ -119,20 +114,18 @@
             });
         }
 
-        function del_client(id) {
-            if (!confirm('Are you sure you want to delete this client?')) { return; }
-            var form = document.getElementById('delete-form');
-            form.action = "{{ url('clients') }}/" + id;
+        function del_vendor(id) {
+            if (!confirm('Are you sure you want to delete this vendor?')) { return; }
             $.ajax({
-                url: "{{ url('clients') }}/" + id,
+                url: "{{ url('vendors') }}/" + id,
                 type: 'POST',
                 data: {_method: 'DELETE', _token: $('meta[name="csrf-token"]').attr('content')},
                 dataType: 'JSON',
                 success: function () {
-                    toastr.success('Client deleted successfully.');
+                    toastr.success('Vendor deleted successfully.');
                     reload_table();
                 },
-                error: function () { toastr.error('Unable to delete client.'); }
+                error: function () { toastr.error('Unable to delete vendor.'); }
             });
         }
     </script>

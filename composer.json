@@ -44,6 +44,7 @@
         "files": [
             "app/Helpers/helper.php",
             "app/Helpers/AccountHelper.php",
+            "app/Helpers/AccountCodeHelper.php",
             "app/Helpers/CmsHelper.php",
             "app/Helpers/QrCode.php"
         ]

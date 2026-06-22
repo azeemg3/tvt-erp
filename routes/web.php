@@ -124,6 +124,19 @@ Route::group(['middleware' => ['auth']], function() {
     Route::resource('mosques',MosqueController::class);
     Route::get('get_mosques','MosqueController@get_data');
     Route::post('save_mosque_excel','MosqueController@save_mosque_excel');
+
+    //Setup Account :: Client & Vendor/Supplier management
+    Route::match(['get', 'post'], 'clients/get_data', 'Setup\ClientController@get_data')->name('clients.data');
+    Route::get('clients/export/excel', 'Setup\ClientController@exportExcel')->name('clients.export.excel');
+    Route::get('clients/export/pdf', 'Setup\ClientController@exportPdf')->name('clients.export.pdf');
+    Route::get('clients/{client}/toggle-status', 'Setup\ClientController@toggleStatus')->name('clients.toggle_status');
+    Route::resource('clients', Setup\ClientController::class);
+
+    Route::match(['get', 'post'], 'vendors/get_data', 'Setup\VendorController@get_data')->name('vendors.data');
+    Route::get('vendors/export/excel', 'Setup\VendorController@exportExcel')->name('vendors.export.excel');
+    Route::get('vendors/export/pdf', 'Setup\VendorController@exportPdf')->name('vendors.export.pdf');
+    Route::get('vendors/{vendor}/toggle-status', 'Setup\VendorController@toggleStatus')->name('vendors.toggle_status');
+    Route::resource('vendors', Setup\VendorController::class);
     //appication setup
     Route::prefix('Application_Setup')->group(function () {
         Route::prefix('Rate_Setup')->group(function () {
