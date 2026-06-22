@@ -3,7 +3,7 @@
     $client = $client ?? null;
     $accountCode = $client && $client->account ? $client->account->code : ($nextCode ?? '');
 @endphp
-
+<!--!-->
 <div class="card-body">
     {{-- Basic Information --}}
     <h6 class="font-weight-bold text-primary border-bottom pb-2 mb-3">Basic Information</h6>
