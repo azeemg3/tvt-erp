@@ -27,7 +27,7 @@
                         <form action="{{ route('general-accounts.update', $generalAccount->id) }}" method="POST" autocomplete="off">
                             @csrf
                             @method('PUT')
-                            @include('setup.general_accounts._form', ['generalAccount' => $generalAccount, 'submitLabel' => 'Update General Account'])
+                            @include('Setup.general_accounts._form', ['generalAccount' => $generalAccount, 'submitLabel' => 'Update General Account'])
                         </form>
                     </div>
                 </div>
