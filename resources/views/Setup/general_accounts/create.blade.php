@@ -26,7 +26,7 @@
                         @include('setup.partials.flash')
                         <form action="{{ route('general-accounts.store') }}" method="POST" autocomplete="off">
                             @csrf
-                            @include('setup.general_accounts._form', ['generalAccount' => null, 'submitLabel' => 'Create General Account'])
+                            @include('Setup.general_accounts._form', ['generalAccount' => null, 'submitLabel' => 'Create General Account'])
                         </form>
                     </div>
                 </div>
