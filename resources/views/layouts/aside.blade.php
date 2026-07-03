@@ -31,7 +31,7 @@ $umrah_reports=['arrival_report','departure_report','checkin_report','checkout_r
 $sale_reports=['simple_sale_register'];
 $providors=['providors','hotel_providor','visa_providor','transport_providor'];
 $acc_providor=['account_statement'];
-$setup_account=['clients','vendors'];
+$setup_account=['clients','vendors','general-accounts'];
 ?>
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -901,6 +901,14 @@ $setup_account=['clients','vendors'];
                                     <a href="{{ route('vendors.index') }}" class="nav-link {{ (request()->is('vendors') || request()->is('vendors/*')) ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                                         <p>Supplier/Vendor List</p>
+                                    </a>
+                                </li>
+                            @endcan
+                            @can('general_account_view')
+                                <li class="nav-item">
+                                    <a href="{{ route('general-accounts.index') }}" class="nav-link {{ (request()->is('general-accounts') || request()->is('general-accounts/*')) ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                        <p>General Account</p>
                                     </a>
                                 </li>
                             @endcan

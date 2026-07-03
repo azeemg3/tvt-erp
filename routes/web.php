@@ -137,6 +137,9 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('vendors/export/pdf', 'Setup\VendorController@exportPdf')->name('vendors.export.pdf');
     Route::get('vendors/{vendor}/toggle-status', 'Setup\VendorController@toggleStatus')->name('vendors.toggle_status');
     Route::resource('vendors', Setup\VendorController::class);
+
+    Route::match(['get', 'post'], 'general-accounts/get_data', 'Setup\GeneralAccountController@get_data')->name('general_accounts.data');
+    Route::resource('general-accounts', Setup\GeneralAccountController::class)->except(['show']);
     //appication setup
     Route::prefix('Application_Setup')->group(function () {
         Route::prefix('Rate_Setup')->group(function () {

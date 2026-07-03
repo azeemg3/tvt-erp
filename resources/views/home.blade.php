@@ -309,6 +309,21 @@
 				<!-- /.row (main row) -->
 			</div><!-- /.container-fluid -->
 		</section>
+        @else
+        <section class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card rounded-0">
+                            <div class="card-body text-center py-5">
+                                <h4 class="mb-2">Welcome, {{ Auth::user()->name }}</h4>
+                                <p class="text-muted mb-0">Use the sidebar menu to access your assigned modules.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
         @endif
 		<!-- /.content -->
 	</div>
