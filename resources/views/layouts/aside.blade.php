@@ -28,6 +28,7 @@ $hotel=['hotel_rate','hotels','room_types'];
 $transport=['transport_rate'];
 $visa=['visa_rate'];
 $umrah_reports=['arrival_report','departure_report','checkin_report','checkout_report'];
+$sale_reports=['simple_sale_register'];
 $providors=['providors','hotel_providor','visa_providor','transport_providor'];
 $acc_providor=['account_statement'];
 $setup_account=['clients','vendors'];
@@ -729,6 +730,12 @@ $setup_account=['clients','vendors'];
                                             </a>
                                         </li>
                                         <li class="nav-item">
+                                            <a href="{{ route('simple_sale_register.index') }}" class="nav-link {{ (request()->is('reports/sale/simple_sale_register*')) ? 'active' : '' }}">
+                                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                                <p>Sale Report</p>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
                                             <a href="#" class="nav-link">
                                                 <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                                                 <p>Purchase</p>
@@ -900,8 +907,8 @@ $setup_account=['clients','vendors'];
                         </ul>
                     </li>
                 @endcan
-                @if(Auth::user()->isAdmin())
-                    <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $umrah_reports)) echo 'menu-open'; ?>">
+                @if(Auth::user()->isAdmin() || Auth::user()->can('sale_invoices_view'))
+                    <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), array_merge($umrah_reports, $sale_reports)) || Request::segment(2) == 'sale') echo 'menu-open'; ?>">
                         <a href="#" class="nav-link">
                             <i class="nav-icon fas fa-chart-area"></i>
                             <p>
@@ -910,6 +917,7 @@ $setup_account=['clients','vendors'];
                             </p>
                         </a>
                         <ul class="nav nav-treeview">
+                            @if(Auth::user()->isAdmin())
                             <li class="nav-item">
                                 <a href="{{ route('users.index') }}" class="nav-link {{ (request()->is('users')) ? 'active' : '' }}">
                                     <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
@@ -960,6 +968,25 @@ $setup_account=['clients','vendors'];
                                     </li>
                                 </ul>
                             </li>
+                            @endif
+                            @can('sale_invoices_view')
+                            <li class="nav-item <?php if(in_array(Request::segment(3), $sale_reports)) echo 'menu-open'; ?>">
+                                <a href="#" class="nav-link {{ (request()->is('reports/sale/*')) ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                    <p>Sale Reports
+                                        <i class="right fas fa-angle-left"></i>
+                                    </p>
+                                </a>
+                                <ul class="nav nav-treeview">
+                                    <li class="nav-item">
+                                        <a href="{{ route('simple_sale_register.index') }}" class="nav-link {{ (request()->is('reports/sale/simple_sale_register*')) ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                            <p>Simple Sale Register</p>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            @endcan
                         </ul>
                     </li>
                 @endif

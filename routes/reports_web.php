@@ -28,6 +28,10 @@ Route::group(['middleware' => ['auth']], function() {
             Route::resource('checkout_report',Reports\Umrah\CheckoutReportController::class);
             Route::post('get_checkout_report','Reports\Umrah\CheckoutReportController@get_data');
         });
+        Route::prefix('sale')->group(function (){
+            Route::resource('simple_sale_register', Reports\Sale\SimpleSaleRegisterController::class);
+            Route::post('get_simple_sale_register', 'Reports\Sale\SimpleSaleRegisterController@get_data');
+        });
     });
 });
 
