@@ -24,7 +24,7 @@ class GeneralAccountController extends Controller
      */
     public function index()
     {
-        return view('setup.general_accounts.index');
+        return view('Setup.general_accounts.index');
     }
 
     /**
@@ -82,7 +82,7 @@ class GeneralAccountController extends Controller
      */
     public function create()
     {
-        return view('setup.general_accounts.create');
+        return view('Setup.general_accounts.create');
     }
 
     /**
@@ -115,7 +115,7 @@ class GeneralAccountController extends Controller
     {
         $generalAccount = GeneralAccount::findOrFail($id);
 
-        return view('setup.general_accounts.edit', compact('generalAccount'));
+        return view('Setup.general_accounts.edit', compact('generalAccount'));
     }
 
     /**
