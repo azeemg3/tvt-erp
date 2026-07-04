@@ -29,13 +29,13 @@
     <table width="100%" style="font-family: sans-serif;line-height: 1.2">
         <tr>
             <td width="60%" style="text-align: left;">
-                <h4 style="font-size: 14px;">UO Trips <span style="font-size: 10px">(Project of Hassain Int)</span></h4>
-                <p style="font-size: 10px">101, 1st Floor Trade Tower Abdullah Haroon Road, Saddar, Karachi<br>
-                    Phone: 4298765432<br>
-                    Email: sales@uotrips.com
+                <h4 style="font-size: 14px;">{{ $company->name }} <span style="font-size: 10px">(Project of Hassain Int)</span></h4>
+                <p style="font-size: 10px">{{ $company->address }}<br>
+                    Phone: {{ $company->phone }}<br>
+                    Email: {{ $company->email }}
                 </p>
             <td width="40%" style="text-align: right;">
-                <img src="{{ URL::asset('public/dist/img/ur-owntrips-logo.jpeg') }}" width="150" />
+                <img src="{{ $company->logo_url }}" width="150" />
                 {{--<p style="font-size: 12px;"> (A Project of Hussain Int)</p>--}}
                 {{--<br>--}}
                 {{--Lead#: 01--}}

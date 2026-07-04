@@ -552,13 +552,16 @@
             singleDatePicker: true,
             showDropdowns: true,
             minYear: 1901,
-            maxYear: parseInt(moment().format('YYYY'),11)
+            maxYear: parseInt(moment().format('YYYY'),11),
+            locale: {
+                format: 'DD-MM-YYYY',
+            }
         }, function(start, end, label) {
             var years = moment().diff(start, 'years');
             $("#age").val(years);
         });
         $(".dob").on('apply.daterangepicker', function(ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-MM-DD'));
+            $(this).val(picker.startDate.format('DD-MM-YYYY'));
         });
         $(".dob").attr("autocomplete", "off");
     });
@@ -668,11 +671,11 @@
             minYear: 1930,
             maxYear: parseInt(moment().format('YYYY'),10),
             locale: {
-                format: 'YYYY-MM-DD',
+                format: 'DD-MM-YYYY',
             },
         });
         $(".date").on('apply.daterangepicker', function(ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-M-DD'));
+            $(this).val(picker.startDate.format('DD-MM-YYYY'));
         });
         $(".date").attr("autocomplete", "off");
     }
@@ -686,11 +689,11 @@
             minYear: 1930,
             maxYear: parseInt(moment().format('YYYY'),10),
             locale: {
-                format: 'YYYY-MM-DD',
+                format: 'DD-MM-YYYY',
             },
         });
         $(".date").on('apply.daterangepicker', function(ev, picker) {
-            $(this).val(picker.startDate.format('YYYY-M-DD'));
+            $(this).val(picker.startDate.format('DD-MM-YYYY'));
         });
         $(".date").attr("autocomplete", "off");
     }

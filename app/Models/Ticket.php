@@ -15,5 +15,5 @@ class Ticket extends Model
         'pb_adv_tax', 'xz_tax', 'yd_tax', 'xt_ur_tax', 'other_taxes', 'total_taxes', 
         'com_rec', 'com_paid', 'wh_air', 'pst_paid', 'psf', 'discount', 'wh_client', 
         'fare_inc', 'taxes_inc', 'agent_amount', 'agent_id', 'payable',
-        'profit', 'fourtnite_date','trans_code'];
+        'profit', 'fourtnite_date', 'bsp', 'trans_code'];
 }

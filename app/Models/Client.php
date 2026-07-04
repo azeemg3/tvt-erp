@@ -21,6 +21,9 @@ class Client extends Model
         'co_spo',
         'assigned_user_id',
         'recovery_officer_id',
+        'spo_id',
+        'ro_id',
+        'marketing_officer_id',
         'category',
         'credit_limit',
         'credit_days',
@@ -52,6 +55,21 @@ class Client extends Model
     public function recoveryOfficer()
     {
         return $this->belongsTo(User::class, 'recovery_officer_id', 'id');
+    }
+
+    public function spoAccount()
+    {
+        return $this->belongsTo(GeneralAccount::class, 'spo_id', 'id');
+    }
+
+    public function recoveryOfficerAccount()
+    {
+        return $this->belongsTo(GeneralAccount::class, 'ro_id', 'id');
+    }
+
+    public function marketingOfficerAccount()
+    {
+        return $this->belongsTo(GeneralAccount::class, 'marketing_officer_id', 'id');
     }
 
     public function creator()

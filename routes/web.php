@@ -99,6 +99,9 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('get_currency_history','CurrencyController@get_currency_history');
 
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    //Modular navigation :: selection landing page + module switcher
+    Route::get('modules', [App\Http\Controllers\ModuleController::class, 'index'])->name('modules.index');
+    Route::get('modules/{slug}', [App\Http\Controllers\ModuleController::class, 'select'])->name('modules.select');
     Route::get('/logout', function(){
         Auth::logout();
         return Redirect::to('login');

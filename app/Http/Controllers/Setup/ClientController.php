@@ -7,6 +7,7 @@ use App\Helpers\AccountCodeHelper;
 use App\Helpers\LedgerAccountHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\GeneralAccount;
 use App\Models\User;
 use DataTables;
 use Illuminate\Http\Request;
@@ -40,7 +41,7 @@ class ClientController extends Controller
     {
         if ($request->ajax()) {
             $query = DB::table('clients')
-                ->leftJoin('users', 'clients.recovery_officer_id', '=', 'users.id')
+                ->leftJoin('general_accounts', 'clients.ro_id', '=', 'general_accounts.id')
                 ->whereNull('clients.deleted_at')
                 ->select(
                     'clients.id',
@@ -51,7 +52,7 @@ class ClientController extends Controller
                     'clients.category',
                     'clients.credit_limit',
                     'clients.status',
-                    'users.name as recovery_officer'
+                    'general_accounts.name as recovery_officer'
                 );
 
             return DataTables::of($query)
@@ -60,7 +61,7 @@ class ClientController extends Controller
                     return number_format((float) $row->credit_limit, 2);
                 })
                 ->filterColumn('recovery_officer', function ($q, $keyword) {
-                    $q->where('users.name', 'like', '%'.$keyword.'%');
+                    $q->where('general_accounts.name', 'like', '%'.$keyword.'%');
                 })
                 ->addColumn('status_badge', function ($row) {
                     return (int) $row->status === 1
@@ -97,7 +98,16 @@ class ClientController extends Controller
         $categories   = Client::CATEGORIES;
         $nextCode     = AccountCodeHelper::nextTransactionCode(LedgerAccountHelper::clientGroupId());
 
-        return view('setup.clients.create', compact('users', 'categories', 'nextCode'));
+        [$spos, $recoveryOfficers, $marketingOfficers] = $this->generalAccountOptions();
+
+        return view('setup.clients.create', compact(
+            'users',
+            'categories',
+            'nextCode',
+            'spos',
+            'recoveryOfficers',
+            'marketingOfficers'
+        ));
     }
 
     /**
@@ -140,7 +150,13 @@ class ClientController extends Controller
      */
     public function show($id)
     {
-        $client = Client::with(['account', 'assignedUser', 'recoveryOfficer', 'creator'])->findOrFail($id);
+        $client = Client::with([
+            'account',
+            'creator',
+            'spoAccount',
+            'recoveryOfficerAccount',
+            'marketingOfficerAccount',
+        ])->findOrFail($id);
 
         return view('setup.clients.show', compact('client'));
     }
@@ -154,7 +170,16 @@ class ClientController extends Controller
         $users      = User::orderBy('name')->get();
         $categories = Client::CATEGORIES;
 
-        return view('setup.clients.edit', compact('client', 'users', 'categories'));
+        [$spos, $recoveryOfficers, $marketingOfficers] = $this->generalAccountOptions();
+
+        return view('setup.clients.edit', compact(
+            'client',
+            'users',
+            'categories',
+            'spos',
+            'recoveryOfficers',
+            'marketingOfficers'
+        ));
     }
 
     /**
@@ -242,7 +267,7 @@ class ClientController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $clients = Client::with('recoveryOfficer')->orderBy('id', 'desc')->get();
+        $clients = Client::with('recoveryOfficerAccount')->orderBy('id', 'desc')->get();
         $pdf     = PDF::loadView('setup.clients.pdf', compact('clients'))->setPaper('a4', 'landscape');
 
         return $pdf->download('clients_'.date('Ymd_His').'.pdf');
@@ -256,11 +281,14 @@ class ClientController extends Controller
         $rules = [
             'client_name'         => 'required|max:255',
             'email'               => 'nullable|email|max:255',
-            'mobile'              => 'required|max:50',
-            'co_spo'              => 'nullable|max:255',
-            'assigned_user_id'    => 'nullable|exists:users,id',
-            'recovery_officer_id' => 'nullable|exists:users,id',
-            'category'            => 'required|in:'.implode(',', Client::CATEGORIES),
+            'mobile'               => 'required|max:50',
+            'co_spo'               => 'nullable|max:255',
+            'assigned_user_id'     => 'nullable|exists:users,id',
+            'recovery_officer_id'  => 'nullable|exists:users,id',
+            'spo_id'               => 'nullable|exists:general_accounts,id',
+            'ro_id'                => 'nullable|exists:general_accounts,id',
+            'marketing_officer_id' => 'nullable|exists:general_accounts,id',
+            'category'             => 'required|in:'.implode(',', Client::CATEGORIES),
             'credit_limit'        => 'nullable|numeric',
             'credit_days'         => 'nullable|numeric',
             'address'             => 'nullable|string',
@@ -268,10 +296,13 @@ class ClientController extends Controller
         ];
 
         $messages = [
-            'client_name.required' => 'Client Name is required.',
-            'mobile.required'      => 'Client Mobile is required.',
-            'category.required'    => 'Category is required.',
-            'email.email'          => 'Please enter a valid email address.',
+            'client_name.required'      => 'Client Name is required.',
+            'mobile.required'           => 'Client Mobile is required.',
+            'category.required'         => 'Category is required.',
+            'email.email'               => 'Please enter a valid email address.',
+            'spo_id.exists'             => 'The selected SPO is invalid.',
+            'ro_id.exists'              => 'The selected Recovery Officer is invalid.',
+            'marketing_officer_id.exists' => 'The selected Marketing Officer is invalid.',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -290,5 +321,29 @@ class ClientController extends Controller
         $last = Client::withTrashed()->max('id');
 
         return 'CL-'.str_pad((string) ((int) $last + 1), 6, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Build the three General Account dropdown collections, each filtered by its designation flag.
+     *
+     * @return array{0:\Illuminate\Support\Collection,1:\Illuminate\Support\Collection,2:\Illuminate\Support\Collection}
+     */
+    protected function generalAccountOptions(): array
+    {
+        $columns = ['id', 'name', 'nic', 'city'];
+
+        $spos = GeneralAccount::where('is_spo', true)
+            ->orderBy('name')
+            ->get($columns);
+
+        $recoveryOfficers = GeneralAccount::where('is_ro', true)
+            ->orderBy('name')
+            ->get($columns);
+
+        $marketingOfficers = GeneralAccount::where('is_marketing_officer', true)
+            ->orderBy('name')
+            ->get($columns);
+
+        return [$spos, $recoveryOfficers, $marketingOfficers];
     }
 }

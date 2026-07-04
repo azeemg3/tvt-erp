@@ -1,4 +1,5 @@
-{{-- Shared Client form. Expects: $client (nullable), $users, $categories, $nextCode (create only) --}}
+{{-- Shared Client form. Expects: $client (nullable), $users, $categories, $nextCode (create only),
+     $spos, $recoveryOfficers, $marketingOfficers (General Account designation collections) --}}
 @php
     $client = $client ?? null;
     $accountCode = $client && $client->account ? $client->account->code : ($nextCode ?? '');
@@ -31,32 +32,46 @@
                    value="{{ old('mobile', $client->mobile ?? '') }}" placeholder="Client Mobile">
             @error('mobile') <span class="invalid-feedback">{{ $message }}</span> @enderror
         </div>
-        <div class="form-group col-md-4">
-            <label>C/O SPO</label>
-            <select name="assigned_user_id" class="form-control form-control-sm select2" style="width:100%;">
-                <option value="">Select C/O SPO</option>
-                @foreach ($users as $user)
-                    <option value="{{ $user->id }}" {{ (string) old('assigned_user_id', $client->assigned_user_id ?? '') === (string) $user->id ? 'selected' : '' }}>
-                        {{ $user->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
     </div>
 
-    {{-- Assignments --}}
+    {{-- Assignments (from General Accounts) --}}
     <h6 class="font-weight-bold text-primary border-bottom pb-2 mb-3 mt-2">Assignments</h6>
     <div class="row">
-        <div class="form-group col-md-6">
-            <label>Recovery Officer</label>
-            <select name="recovery_officer_id" class="form-control form-control-sm select2" style="width:100%;">
-                <option value="">Select Recovery Officer</option>
-                @foreach ($users as $user)
-                    <option value="{{ $user->id }}" {{ (string) old('recovery_officer_id', $client->recovery_officer_id ?? '') === (string) $user->id ? 'selected' : '' }}>
-                        {{ $user->name }}
+        <div class="form-group col-md-4">
+            <label>Assign SPO</label>
+            <select name="spo_id" class="form-control form-control-sm select2 @error('spo_id') is-invalid @enderror" style="width:100%;">
+                <option value="">Select SPO</option>
+                @foreach ($spos as $spo)
+                    <option value="{{ $spo->id }}" {{ (string) old('spo_id', $client->spo_id ?? '') === (string) $spo->id ? 'selected' : '' }}>
+                        {{ $spo->name }}@if ($spo->city) — {{ $spo->city }}@endif
                     </option>
                 @endforeach
             </select>
+            @error('spo_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
+        </div>
+        <div class="form-group col-md-4">
+            <label>Assign Recovery Officer</label>
+            <select name="ro_id" class="form-control form-control-sm select2 @error('ro_id') is-invalid @enderror" style="width:100%;">
+                <option value="">Select Recovery Officer</option>
+                @foreach ($recoveryOfficers as $recoveryOfficer)
+                    <option value="{{ $recoveryOfficer->id }}" {{ (string) old('ro_id', $client->ro_id ?? '') === (string) $recoveryOfficer->id ? 'selected' : '' }}>
+                        {{ $recoveryOfficer->name }}@if ($recoveryOfficer->city) — {{ $recoveryOfficer->city }}@endif
+                    </option>
+                @endforeach
+            </select>
+            @error('ro_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
+        </div>
+        <div class="form-group col-md-4">
+            <label>Assign Marketing Officer</label>
+            <select name="marketing_officer_id" class="form-control form-control-sm select2 @error('marketing_officer_id') is-invalid @enderror" style="width:100%;">
+                <option value="">Select Marketing Officer</option>
+                @foreach ($marketingOfficers as $marketingOfficer)
+                    <option value="{{ $marketingOfficer->id }}" {{ (string) old('marketing_officer_id', $client->marketing_officer_id ?? '') === (string) $marketingOfficer->id ? 'selected' : '' }}>
+                        {{ $marketingOfficer->name }}@if ($marketingOfficer->city) — {{ $marketingOfficer->city }}@endif
+                    </option>
+                @endforeach
+            </select>
+            @error('marketing_officer_id') <span class="invalid-feedback">{{ $message }}</span> @enderror
         </div>
     </div>
 

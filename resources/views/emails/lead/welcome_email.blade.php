@@ -167,7 +167,7 @@
                                                         <tr>
                                                             <td class="esd-block-text es-p30t es-p30r es-p30l" align="center">
                                                                 <h3 style="color: #111111;">Need more help?</h3>
-                                                                <p>101, 1st floor Trade Tower Abdullah Haroon Road, Saddar, Karachi Pakistan</p>
+                                                                <p>{{ $company->address }}</p>
                                                             </td>
                                                         </tr>
                                                         <tr>

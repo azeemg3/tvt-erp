@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="https://accounts.7skysoft.com/assets/plugins/bootstrap/css/bootstrap.min.css">
-    <title>Hussain Int- Receipt Voucher</title>
+    <title>{{ $company->name }} - Receipt Voucher</title>
 </head>
 <body>
 <style>
@@ -33,11 +33,11 @@
     <table width="100%" style="font-family: sans-serif; line-height: 1">
         <tbody>
         <tr>
-            <td width="15%"><img src="{{ URL::asset('public/dist/img/hussain-logo.jpeg') }}" width="120" /></td>
-            <td width="85%" style="text-align: center;"><h4 style="margin-bottom: 10px;margin-top: 5px;font-size: 14px;">HUSSAIN INTERNATIONAL TRAVEL & TOURS</h4>
-                <p style="margin-bottom: 5px;font-size: 14px;margin-top: 5px;">Office 1 First Floor Trade Tower Abdullah Haroon Road,<br> Saddar, Karachi</p>
-                <p style="margin-bottom: 5px;font-size: 14px;margin-top: 5px;"> Phone: +92 021 35210452</p>
-                <p style="margin-bottom: 5px;font-size: 14px;margin-top: 5px;">Email: info@uotrips.com</p>
+            <td width="15%"><img src="{{ $company->logo_url }}" width="120" /></td>
+            <td width="85%" style="text-align: center;"><h4 style="margin-bottom: 10px;margin-top: 5px;font-size: 14px;">{{ $company->name }}</h4>
+                <p style="margin-bottom: 5px;font-size: 14px;margin-top: 5px;">{{ $company->address }}</p>
+                <p style="margin-bottom: 5px;font-size: 14px;margin-top: 5px;"> Phone: {{ $company->phone }}</p>
+                <p style="margin-bottom: 5px;font-size: 14px;margin-top: 5px;">Email: {{ $company->email }}</p>
             </td>
         </tr>
         <tr style="text-align: center;">

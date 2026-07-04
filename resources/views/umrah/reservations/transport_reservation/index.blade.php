@@ -255,11 +255,11 @@
                 minYear: 1930,
                 maxYear: parseInt(moment().format('YYYY'),10),
                 locale: {
-                    format: 'YYYY-MM-DD',
+                    format: 'DD-MM-YYYY',
                 },
             });
             $(".date").on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('YYYY-M-DD'));
+                $(this).val(picker.startDate.format('DD-MM-YYYY'));
             });
             $(".date").attr("autocomplete", "off");
         }

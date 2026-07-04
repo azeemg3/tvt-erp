@@ -106,6 +106,21 @@ function snf(num)
 {
 	return num.toLocaleString();
 }
+//@application wide date display format (day-month-year)
+var APP_DATE_FORMAT = 'DD-MM-YYYY';
+//convert any DD-MM-YYYY / YYYY-MM-DD picker values already on the page to DD-MM-YYYY
+function normalize_date_display(scope) {
+    var $scope = scope ? $(scope) : $(document);
+    $scope.find('input.date, input.dob').each(function () {
+        var val = $.trim($(this).val());
+        if (!val) { return; }
+        //ISO (YYYY-MM-DD, optionally with time) -> DD-MM-YYYY
+        var iso = val.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (iso) {
+            $(this).val(('0' + iso[3]).slice(-2) + '-' + ('0' + iso[2]).slice(-2) + '-' + iso[1]);
+        }
+    });
+}
 //@single date picker
 $(function() {
     $('.date').daterangepicker({
@@ -116,13 +131,18 @@ $(function() {
         minYear: 1930,
         maxYear: parseInt(moment().format('YYYY'),15),
         locale: {
-            format: 'YYYY-MM-DD',
+            format: APP_DATE_FORMAT,
         },
     });
     $(".date").on('apply.daterangepicker', function(ev, picker) {
-        $(this).val(picker.startDate.format('YYYY-M-DD'));
+        $(this).val(picker.startDate.format(APP_DATE_FORMAT));
     });
     $(".date").attr("autocomplete", "off");
+    normalize_date_display();
+});
+//re-normalize dates that get injected into edit forms via AJAX
+$(document).ajaxComplete(function () {
+    normalize_date_display();
 });
 //martial status
 function martial_status(status) {

@@ -283,14 +283,15 @@ class CommonHelper{
     }
     //print headers
     public static function print_header($title=''){
+        $company = \App\Models\Company::current();
         $html='';
         $html.='
             <div class="print-header" style="display: none">
-                <h1 style="font-size: 16px;text-align: center">Tour Vision Travel</h1>
+                <h1 style="font-size: 16px;text-align: center">'.e($company->name).'</h1>
                 <div style="text-align: center">
-                    101, 1st Floor Trade Tower Abdullah Haroon Road, Saddar, Karachi<br>
-                    Phone: 4298765432</br>
-                    Email: sales@uotrips.co
+                    '.e($company->address).'<br>
+                    Phone: '.e($company->phone).'</br>
+                    Email: '.e($company->email).'
                 </div>
                 <br>
                 <table width="100%" style="font-family: sans-serif;line-height: 0.9">
@@ -302,7 +303,7 @@ class CommonHelper{
                             </h4>
                         </td>
                         <td width="33.33%" style="text-align: right;">
-                            <img src="'.url('public/dist/img/hussain-logo.jpeg').'" width="100" />
+                            <img src="'.e($company->logo_url).'" width="100" />
                         </td>
                     </tr>
                 </table><br>

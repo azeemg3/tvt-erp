@@ -5,15 +5,15 @@
     <meta charset="utf-8">
     <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
     <link rel="stylesheet" href="{{ URL::asset('public/plugins/icheck-bootstrap/icheck-bootstrap.min.css') }}">
-    <title>Head Office-Invoice Print</title>
+    <title>{{ $company->name }} - Invoice Print</title>
 </head>
 <body>
 <div class="page-footer">
     <table class="footer" style="width: 100%; font-family: sans-serif;border-top: 1px solid #000;">
         <tr>
-            <td style="padding-top: 10px;padding-bottom: 10px;text-align: left;font-size: 12px;">Powered By: Al-Hussain Int</td>
-            <td style="padding-top: 10px;padding-bottom: 10px;text-align: center;font-size: 12px;">Website: www.uotrips.com</td>
-            <td style="padding-top: 10px;padding-bottom: 10px;text-align: right;font-size: 12px;">Contact No: +92 021 35210452 - +92 333 2071887</td>
+            <td style="padding-top: 10px;padding-bottom: 10px;text-align: left;font-size: 12px;">Powered By: {{ $company->powered_by }}</td>
+            <td style="padding-top: 10px;padding-bottom: 10px;text-align: center;font-size: 12px;">Website: {{ $company->website }}</td>
+            <td style="padding-top: 10px;padding-bottom: 10px;text-align: right;font-size: 12px;">Contact No: {{ $company->contact_no }}</td>
         </tr>
     </table>
 </div>
@@ -42,14 +42,14 @@
 <div class="col-md-12" style="position: relative;min-height: 100%;height: 100%;">
     <table width="100%" style="font-family: sans-serif; line-height:1;">
         <tr>
-            <td width="33.33%"><img src="{{ URL::asset('public/dist/img/logo.png') }}" width="150" /></td>
-            <td width="33.33%" style="text-align: center;"><h4 style="margin-bottom: 10px;margin-top: 5px;font-size: 14px; font-weight:600">Al-Hussain Int
+            <td width="33.33%"><img src="{{ $company->logo_url }}" width="150" /></td>
+            <td width="33.33%" style="text-align: center;"><h4 style="margin-bottom: 10px;margin-top: 5px;font-size: 14px; font-weight:600">{{ $company->name }}
                     <span style="font-size:14px;">(Head Office)</span></h4>
-                <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">101, 1st Floor Trade Tower Abdullah Haroon Road, Saddar, Karachi</p>
+                <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">{{ $company->address }}</p>
                 <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">
-                    Phone: 4298765432</p>
-                <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">Email: sales@uotrips.com</p>
-                <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">Govt. Lic No:321, IATA No: 133, NTN: 85212</p></td>
+                    Phone: {{ $company->phone }}</p>
+                <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">Email: {{ $company->email }}</p>
+                <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">Govt. Lic No: {{ $company->govt_lic_no }}, IATA No: {{ $company->iata_no }}, NTN: {{ $company->ntn }}</p></td>
             <td width="33.33%" style="text-align: right;">
                 {{--<img src="../iyata_logo/iata.png" width="100" />--}}
             </td>

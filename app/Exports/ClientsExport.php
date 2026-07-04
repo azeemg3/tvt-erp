@@ -18,7 +18,7 @@ class ClientsExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        $query = Client::with('recoveryOfficer');
+        $query = Client::with('recoveryOfficerAccount');
 
         if (! empty($this->search)) {
             $term = '%'.$this->search.'%';
@@ -52,7 +52,7 @@ class ClientsExport implements FromCollection, WithHeadings, WithMapping
             $client->category,
             number_format((float) $client->credit_limit, 2),
             $client->credit_days,
-            optional($client->recoveryOfficer)->name,
+            optional($client->recoveryOfficerAccount)->name,
             (int) $client->status === 1 ? 'Active' : 'Inactive',
         ];
     }

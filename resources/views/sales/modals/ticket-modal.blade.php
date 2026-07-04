@@ -124,6 +124,14 @@
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
+                            <label for="exampleInputEmail1">BSP</label>
+                            <select name="bsp" class="form-control form-control-sm">
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select>
+                        </div>
+                        <!--col-->
+                        <div class="form-group col-md-2">
                             <label for="exampleInputEmail1">Ticket No#</label>
                             <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="Ticke Number" maxlength="15">
                         </div>

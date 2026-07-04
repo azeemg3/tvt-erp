@@ -31,6 +31,8 @@ Route::group(['middleware' => ['auth']], function() {
         Route::prefix('sale')->group(function (){
             Route::resource('simple_sale_register', Reports\Sale\SimpleSaleRegisterController::class);
             Route::post('get_simple_sale_register', 'Reports\Sale\SimpleSaleRegisterController@get_data');
+            Route::resource('bsp_sale_report', Reports\Sale\BspSaleReportController::class);
+            Route::post('get_bsp_sale_report', 'Reports\Sale\BspSaleReportController@get_data');
         });
     });
 });

@@ -2,37 +2,35 @@
 
 @section('content')
     <style>
-        .sale-report-header {
+        .bsp-report-header {
             font-family: Arial, sans-serif;
-            text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
-        .sale-report-header .company-name {
+        .bsp-report-header .company-name {
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 4px;
         }
-        .sale-report-header .company-info {
+        .bsp-report-header .company-info {
             font-size: 12px;
             line-height: 1.5;
             color: #333;
         }
-        .sale-report-title {
-            font-size: 18px;
+        .bsp-report-title {
+            font-size: 16px;
             font-weight: bold;
-            margin: 12px 0 6px;
+            margin: 6px 0 2px;
             text-align: center;
         }
-        .sale-report-dates {
-            font-size: 13px;
+        .bsp-report-dates {
+            font-size: 12px;
             text-align: center;
             margin-bottom: 10px;
         }
-        .sale-report-print-date {
+        .bsp-report-print-date {
             font-size: 11px;
             text-align: right;
             color: #555;
-            margin-bottom: 8px;
         }
         #table2excel {
             font-size: 12px;
@@ -40,35 +38,42 @@
             width: 100%;
         }
         #table2excel thead th {
-            background-color: #e9ecef;
-            border: 1px solid #dee2e6;
-            padding: 8px 6px;
-            text-transform: uppercase;
+            background-color: #f1f3f5;
+            border: 1px solid #adb5bd;
+            padding: 6px 6px;
             font-size: 11px;
             font-weight: 600;
             white-space: nowrap;
         }
         #table2excel tbody td {
-            border: 1px solid #dee2e6;
-            padding: 6px;
+            border: 1px solid #ced4da;
+            padding: 4px 6px;
             vertical-align: middle;
         }
-        #table2excel tbody tr:hover {
+        #table2excel .text-right { text-align: right; }
+        #table2excel .text-center { text-align: center; }
+        #table2excel .group-title td {
+            font-weight: bold;
             background-color: #f8f9fa;
+            border: 1px solid #adb5bd;
         }
-        #table2excel .text-right {
-            text-align: right;
-        }
-        #table2excel tfoot td {
-            border: 1px solid #dee2e6;
-            padding: 8px 6px;
+        #table2excel .branch-total td {
             font-weight: bold;
             background-color: #f1f3f5;
+            border-top: 1px solid #495057;
         }
-        .report-actions .btn {
-            margin-right: 6px;
-            margin-bottom: 6px;
+        #table2excel .net-total td {
+            font-weight: bold;
+            background-color: #e9ecef;
+            border-top: 2px solid #212529;
+            border-bottom: 2px solid #212529;
         }
+        #table2excel .empty-row td {
+            text-align: center;
+            color: #868e96;
+            padding: 14px;
+        }
+        .report-actions .btn { margin-right: 6px; margin-bottom: 6px; }
         .btn-excel { background-color: #17a2b8; border-color: #17a2b8; color: #fff; }
         .btn-word { background-color: #007bff; border-color: #007bff; color: #fff; }
         .btn-email { background-color: #fff; border-color: #007bff; color: #007bff; }
@@ -80,19 +85,16 @@
             font-size: 11px;
             color: #555;
         }
-        .report-footer table {
-            width: 100%;
-        }
+        .report-footer table { width: 100%; }
         @media print {
             .no-report { display: none !important; }
             .report-show { display: block !important; }
             .content-wrapper { margin: 0 !important; padding: 0 !important; }
             .main-footer, .main-header, .main-sidebar { display: none !important; }
-            @page { size: landscape; margin: 10mm; }
+            @page { size: landscape; margin: 8mm; }
             #table2excel { font-size: 10px; }
-            #table2excel thead th, #table2excel tbody td, #table2excel tfoot td {
-                padding: 4px;
-            }
+            #table2excel thead th,
+            #table2excel tbody td { padding: 3px 4px; }
         }
     </style>
 
@@ -105,7 +107,7 @@
                             <li class="breadcrumb-item"><a href="#">Home</a></li>
                             <li class="breadcrumb-item">Reports</li>
                             <li class="breadcrumb-item">Sale Reports</li>
-                            <li class="breadcrumb-item active">Simple Sale Register</li>
+                            <li class="breadcrumb-item active">Bsp Sale Report</li>
                         </ol>
                     </div>
                 </div>
@@ -121,33 +123,29 @@
                                 <div class="row">
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <input type="text" name="df" id="df" class="form-control form-control-sm date" placeholder="From Date">
+                                            <label class="mb-1">From Date</label>
+                                            <input type="text" name="df" id="df" class="form-control form-control-sm date" placeholder="From Date" autocomplete="off">
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <input type="text" name="dt" id="dt" class="form-control form-control-sm date" placeholder="To Date">
+                                            <label class="mb-1">To Date</label>
+                                            <input type="text" name="dt" id="dt" class="form-control form-control-sm date" placeholder="To Date" autocomplete="off">
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
-                                            <select name="ledger" class="form-control form-control-sm select2">
-                                                <option value="">All Clients</option>
-                                                {!! App\Models\Accounts\TransactionAccount::dropdown() !!}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <select name="payable_id" class="form-control form-control-sm select2">
-                                                <option value="">All Vendors</option>
-                                                {!! App\Models\Accounts\TransactionAccount::vendor_dd() !!}
+                                            <label class="mb-1">Airline</label>
+                                            <select name="airline" class="form-control form-control-sm select2">
+                                                <option value="">All Airlines</option>
+                                                {!! App\Models\Airline::dropdown() !!}
                                             </select>
                                         </div>
                                     </div>
                                     <div class="col-md-2">
                                         <div class="form-group">
-                                            <button type="button" class="btn btn-flat btn-xs btn-dark" onclick="get_data(1)">
+                                            <label class="mb-1 d-block">&nbsp;</label>
+                                            <button type="button" class="btn btn-flat btn-sm btn-dark" onclick="get_data()">
                                                 <i class="fas fa-search"></i> Search
                                             </button>
                                         </div>
@@ -156,52 +154,51 @@
                             </form>
 
                             <div id="report-area">
-                                <div class="sale-report-print-date report-show">
-                                    Printing Date: <span id="printing_date"></span>
-                                </div>
-
-                                <div class="sale-report-header report-show">
-                                    <table width="100%" style="margin-bottom: 10px;">
+                                <div class="bsp-report-header report-show">
+                                    <table width="100%">
                                         <tr>
                                             <td width="20%" style="text-align: left; vertical-align: top;">
                                                 <img src="{{ $company->logo_url }}" width="120" alt="Logo" onerror="this.style.display='none'">
                                             </td>
                                             <td width="60%" style="text-align: center; vertical-align: top;">
-                                                <div class="company-name">{{ $company->name }} (Head Office)</div>
+                                                <div class="company-name">{{ $company->name }}</div>
                                                 <div class="company-info">
                                                     {{ $company->address }}<br>
-                                                    Phone: {{ $company->phone }} &nbsp;|&nbsp; Email: {{ $company->email }}<br>
-                                                    Govt. Lic No: {{ $company->govt_lic_no }} &nbsp;|&nbsp; IATA No: {{ $company->iata_no }} &nbsp;|&nbsp; NTN: {{ $company->ntn }}
+                                                    Phone: {{ $company->phone }}<br>
+                                                    Email: {{ $company->email }}<br>
+                                                    Govt. Lic No: {{ $company->govt_lic_no }} , IATA No: {{ $company->iata_no }} , NTN: {{ $company->ntn }}
                                                 </div>
                                             </td>
-                                            <td width="20%"></td>
+                                            <td width="20%" style="vertical-align: bottom;">
+                                                <div class="bsp-report-print-date">
+                                                    Printing Date: <span id="printing_date"></span>
+                                                </div>
+                                            </td>
                                         </tr>
                                     </table>
-                                    <div class="sale-report-title">Simple Sale Register</div>
-                                    <div class="sale-report-dates">
-                                        From: <span id="display_from">-</span> &nbsp;|&nbsp; To: <span id="display_to">-</span>
+                                    <div class="bsp-report-title">Bsp Sale Report</div>
+                                    <div class="bsp-report-dates">
+                                        From: <span id="display_from">-</span> | To: <span id="display_to">-</span>
                                     </div>
                                 </div>
 
                                 <table id="table2excel" class="table">
                                     <thead>
                                     <tr>
-                                        <th>#</th>
-                                        <th>Invoice Date</th>
-                                        <th>Invoice Id</th>
-                                        <th>Ticket No</th>
-                                        <th>Ticket Type</th>
-                                        <th>Passenger Name</th>
-                                        <th>Sector</th>
-                                        <th>Client Code</th>
-                                        <th>Payable (Vendor)</th>
-                                        <th class="text-right">Receivable</th>
+                                        <th>Air</th>
+                                        <th>Doc No</th>
+                                        <th>Pass Name</th>
+                                        <th>Date</th>
+                                        <th class="text-right">Fare</th>
+                                        <th class="text-right">Taxes</th>
+                                        <th class="text-right">Com</th>
+                                        <th class="text-right">WH</th>
+                                        <th class="text-right">O.Income</th>
+                                        <th class="text-right">Ded</th>
                                         <th class="text-right">Payable</th>
-                                        <th class="text-right">Profit/Loss</th>
                                     </tr>
                                     </thead>
-                                    <tbody id="get_data"></tbody>
-                                    <tfoot id="report_totals"></tfoot>
+                                    <tbody id="report_body"></tbody>
                                 </table>
 
                                 <div class="report-actions no-report" style="margin-top: 15px;">
@@ -230,9 +227,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-footer clearfix no-report">
-                            <div class="pagination-panel"></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -242,30 +236,25 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{{ URL::asset('public/export_excel/jquery.table2excel.js') }}"></script>
     <script>
+        var COLUMN_COUNT = 11;
+
         $(function () {
             $('.select2').select2();
             setDefaultDates();
             updatePrintingDate();
-            get_data(1);
+            get_data();
         });
 
         function setDefaultDates() {
             var today = new Date();
             var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            var fmt = function (d) {
-                return ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + d.getFullYear();
-            };
             var isoFmt = function (d) {
                 return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
             };
-            if (!$('#df').val()) {
-                $('#df').val(isoFmt(firstDay));
-            }
-            if (!$('#dt').val()) {
-                $('#dt').val(isoFmt(today));
-            }
-            $('#display_from').text(fmt(firstDay));
-            $('#display_to').text(fmt(today));
+            if (!$('#df').val()) { $('#df').val(isoFmt(firstDay)); }
+            if (!$('#dt').val()) { $('#dt').val(isoFmt(today)); }
+            $('#display_from').text(formatDateDisplay($('#df').val()));
+            $('#display_to').text(formatDateDisplay($('#dt').val()));
         }
 
         function updatePrintingDate() {
@@ -279,71 +268,109 @@
 
         function formatDateDisplay(dateStr) {
             if (!dateStr) return '-';
-            var parts = dateStr.split('-');
+            var value = String(dateStr).substring(0, 10);
+            var parts = value.split('-');
             if (parts.length === 3) {
                 return parts[2] + '-' + parts[1] + '-' + parts[0];
             }
-            return dateStr;
+            return value;
         }
 
+        // Absolute value formatted with thousands separators and 2 decimals.
         function formatNumber(num) {
+            num = Math.abs(parseFloat(num) || 0);
+            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Accounting style: negatives (and forced negatives) shown in parentheses.
+        function formatSigned(num, forceNegative) {
             num = parseFloat(num) || 0;
-            return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            if (forceNegative || num < 0) {
+                return '(' + formatNumber(num) + ')';
+            }
+            return formatNumber(num);
         }
 
-        function ticketTypeLabel(type) {
-            return Number(type) === 1 ? 'DOM' : 'INT';
+        function td(value, cls) {
+            return '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + value + '</td>';
         }
 
-        function get_data(page) {
+        function rowHtml(row, isRefund) {
+            var html = '<tr>';
+            html += td(row.air || '');
+            html += td(row.doc_no || '');
+            html += td((row.pax_name || ''));
+            html += td(formatDateDisplay(row.date), 'text-center');
+            // For refunds, Fare and Taxes are reversals -> always shown in parentheses.
+            html += td(formatSigned(row.fare, isRefund), 'text-right');
+            html += td(formatSigned(row.taxes, isRefund), 'text-right');
+            html += td(formatSigned(row.com), 'text-right');
+            html += td(formatSigned(row.wh), 'text-right');
+            html += td(formatSigned(row.oincome), 'text-right');
+            html += td(formatSigned(row.ded), 'text-right');
+            html += td(formatSigned(row.payable), 'text-right');
+            html += '</tr>';
+            return html;
+        }
+
+        function totalRowHtml(label, totals, cls, isRefund) {
+            var html = '<tr class="' + cls + '">';
+            html += '<td colspan="4" class="text-right">' + label + '</td>';
+            html += td(formatSigned(totals.fare, isRefund), 'text-right');
+            html += td(formatSigned(totals.taxes, isRefund), 'text-right');
+            html += td(formatSigned(totals.com), 'text-right');
+            html += td(formatSigned(totals.wh), 'text-right');
+            html += td(formatSigned(totals.oincome), 'text-right');
+            html += td(formatSigned(totals.ded), 'text-right');
+            html += td(formatSigned(totals.payable), 'text-right');
+            html += '</tr>';
+            return html;
+        }
+
+        function groupTitleHtml(title) {
+            return '<tr class="group-title"><td colspan="' + COLUMN_COUNT + '">' + title + '</td></tr>';
+        }
+
+        function get_data() {
             $("#loader").show();
-            var df = $('input[name="df"]').val();
-            var dt = $('input[name="dt"]').val();
-            $('#display_from').text(formatDateDisplay(df));
-            $('#display_to').text(formatDateDisplay(dt));
+            $('#display_from').text(formatDateDisplay($('#df').val()));
+            $('#display_to').text(formatDateDisplay($('#dt').val()));
             updatePrintingDate();
 
             $.ajax({
-                url: "{{ url('reports/sale/get_simple_sale_register') }}?page=" + page,
+                url: "{{ url('reports/sale/get_bsp_sale_report') }}",
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
                 type: "POST",
                 dataType: "JSON",
                 data: $("#form").serialize(),
                 success: function (data) {
-                    var htmlData = '';
-                    var startIndex = ((data.current_page - 1) * data.per_page);
-                    for (var i in data.data) {
-                        var row = data.data[i];
-                        htmlData += '<tr>';
-                        htmlData += '<td><i class="fa fa-tag"></i> ' + (startIndex + Number(i) + 1) + '</td>';
-                        htmlData += '<td>' + formatDateDisplay(row.inv_date) + '</td>';
-                        htmlData += '<td>' + row.invoice_id + '</td>';
-                        htmlData += '<td>' + (row.ticket_no || '') + '</td>';
-                        htmlData += '<td>' + ticketTypeLabel(row.ticket_type) + '</td>';
-                        htmlData += '<td>' + (row.pax_name || '').toUpperCase() + '</td>';
-                        htmlData += '<td>' + (row.sector || '').toUpperCase() + '</td>';
-                        htmlData += '<td>' + (row.client_name || '') + '</td>';
-                        htmlData += '<td>' + (row.vendor_name || '') + '</td>';
-                        htmlData += '<td class="text-right">' + formatNumber(row.receiveable) + '</td>';
-                        htmlData += '<td class="text-right">' + formatNumber(row.payable) + '</td>';
-                        htmlData += '<td class="text-right">' + formatNumber(row.profit) + '</td>';
-                        htmlData += '</tr>';
-                    }
-                    $("#get_data").html(htmlData);
+                    var html = '';
+                    var i;
 
-                    if (data.totals) {
-                        var t = data.totals;
-                        var footerHtml = '<tr>';
-                        footerHtml += '<td>' + t.total_count + '</td>';
-                        footerHtml += '<td colspan="8"></td>';
-                        footerHtml += '<td class="text-right">' + formatNumber(t.total_receivable) + '</td>';
-                        footerHtml += '<td class="text-right">' + formatNumber(t.total_payable) + '</td>';
-                        footerHtml += '<td class="text-right">' + formatNumber(t.total_profit) + '</td>';
-                        footerHtml += '</tr>';
-                        $("#report_totals").html(footerHtml);
+                    // ---- Sales section (branch) ----
+                    html += groupTitleHtml(data.branch_label || 'Head Office');
+                    if (data.sales.length) {
+                        for (i = 0; i < data.sales.length; i++) {
+                            html += rowHtml(data.sales[i], false);
+                        }
+                    } else {
+                        html += '<tr class="empty-row"><td colspan="' + COLUMN_COUNT + '">No sales found for the selected range.</td></tr>';
+                    }
+                    html += totalRowHtml('Branch Total:', data.sales_totals, 'branch-total', false);
+
+                    // ---- Refund section ----
+                    if (data.refunds.length) {
+                        html += groupTitleHtml('Refund');
+                        for (i = 0; i < data.refunds.length; i++) {
+                            html += rowHtml(data.refunds[i], true);
+                        }
+                        html += totalRowHtml('Branch Total:', data.refund_totals, 'branch-total', true);
                     }
 
-                    pagination(data.total, data.per_page, data.current_page, data.to, get_data);
+                    // ---- Net total ----
+                    html += totalRowHtml('Net Total:', data.net_totals, 'net-total', false);
+
+                    $("#report_body").html(html);
                     $("#loader").hide();
                 },
                 error: function () {
@@ -358,8 +385,8 @@
         });
 
         function emailReport() {
-            var subject = encodeURIComponent('Simple Sale Register - {{ $company->name }}');
-            var body = encodeURIComponent('Please find the Simple Sale Register report attached.\n\nFrom: ' + $('#display_from').text() + '\nTo: ' + $('#display_to').text());
+            var subject = encodeURIComponent('Bsp Sale Report - {{ $company->name }}');
+            var body = encodeURIComponent('Please find the Bsp Sale Report.\n\nFrom: ' + $('#display_from').text() + '\nTo: ' + $('#display_to').text());
             window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
         }
 
@@ -368,8 +395,8 @@
             jq(".exportToExcel").click(function () {
                 jq("#table2excel").table2excel({
                     exclude: ".noExl",
-                    name: "Simple Sale Register",
-                    filename: "simple_sale_register_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xls",
+                    name: "Bsp Sale Report",
+                    filename: "bsp_sale_report_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xls",
                     fileext: ".xls",
                     exclude_img: true,
                     exclude_links: true,
@@ -379,14 +406,14 @@
             });
 
             jq(".exportToWord").click(function () {
-                var header = document.querySelector('.sale-report-header').outerHTML;
+                var header = document.querySelector('.bsp-report-header').outerHTML;
                 var table = document.getElementById('table2excel').outerHTML;
                 var footer = document.querySelector('.report-footer').outerHTML;
                 var html = '<html><head><meta charset="utf-8"></head><body>' + header + table + footer + '</body></html>';
                 var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
                 var link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'simple_sale_register_' + new Date().toISOString().slice(0, 10) + '.doc';
+                link.download = 'bsp_sale_report_' + new Date().toISOString().slice(0, 10) + '.doc';
                 link.click();
             });
         });

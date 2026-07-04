@@ -43,7 +43,7 @@
                 <td>{{ $client->category }}</td>
                 <td class="text-right">{{ number_format((float) $client->credit_limit, 2) }}</td>
                 <td class="text-right">{{ $client->credit_days }}</td>
-                <td>{{ optional($client->recoveryOfficer)->name }}</td>
+                <td>{{ optional($client->recoveryOfficerAccount)->name }}</td>
                 <td>{{ (int) $client->status === 1 ? 'Active' : 'Inactive' }}</td>
             </tr>
         @endforeach
