@@ -84,8 +84,13 @@
             <td>_______________<br>Approved By</td>
         </tr>
         </tbody></table>
-        <p style="margin-bottom: 5px;font-size: 12px;margin-top: 5px;text-align: center;
-position: absolute; bottom: 5px; left: 40%"><u>System Support by Uotrips</u></p>
+        <table style="width: 100%; font-family: sans-serif; border-top: 1px solid #000; position: absolute; bottom: 5px; left: 0;">
+            <tr>
+                <td style="padding-top: 8px;padding-bottom: 8px;text-align: left;font-size: 12px;">Powered By: {{ $company->powered_by }}</td>
+                <td style="padding-top: 8px;padding-bottom: 8px;text-align: center;font-size: 12px;">Website: {{ $company->website }}</td>
+                <td style="padding-top: 8px;padding-bottom: 8px;text-align: right;font-size: 12px;">Contact No: {{ $company->contact_no }}</td>
+            </tr>
+        </table>
 </div>
 </body>
 </html>

@@ -38,7 +38,7 @@
                 <p style="margin-bottom: 2px;font-size: 12px;margin-top: 2px;">Phone: {{ $booking_details->phone }}</p>
                 <h6>Booking Status:@if ($booking_details->status==1)Approved @else Pending @endif</h6>
             <td width="">
-                <img src="http://192.168.0.150/uotrips/storage/app/qr-codes/{{ $booking_details->booking_no }}.png" width="100" />
+                <img src="{{ url('storage/app/qr-codes/'.$booking_details->booking_no.'.png') }}" width="100" />
             </td>
             <td width="33.33%" style="text-align: right;">
                 <img src="{{ $company->logo_url }}" width="100" />
@@ -162,7 +162,12 @@
         </tr>
     </table><br>
 </div>
-<p style="width:100%;position: absolute;bottom: 0; text-align: center">
-    <br>System Support by Uotrips</p>
+<table style="width: 100%; font-family: sans-serif; border-top: 1px solid #000; position: absolute; bottom: 0; left: 0;">
+    <tr>
+        <td style="padding-top: 8px;padding-bottom: 8px;text-align: left;font-size: 12px;">Powered By: {{ $company->powered_by }}</td>
+        <td style="padding-top: 8px;padding-bottom: 8px;text-align: center;font-size: 12px;">Website: {{ $company->website }}</td>
+        <td style="padding-top: 8px;padding-bottom: 8px;text-align: right;font-size: 12px;">Contact No: {{ $company->contact_no }}</td>
+    </tr>
+</table>
 </body>
 </html>
