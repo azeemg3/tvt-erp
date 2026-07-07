@@ -39,18 +39,18 @@
                             </div>
                         </div>
                         <!--col-->
-                        <div class="form-group col-md-4">
-                            <label for="exampleInputEmail1">Remarks</label>
-                            <input name="remarks" class="form-control form-control-sm" placeholder="Remarks">
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <label>Select SPO</label>
+                                <select name="spo_id" class="form-control form-control-sm select2">
+                                    <option value="">Select SPO</option>
+                                    {!! App\Models\GeneralAccount::spoDropdown() !!}
+                                </select>
+                            </div>
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Fourtnite Date*</label>
-                            <input name="fourtnite" class="form-control form-control-sm date" placeholder="Fortnite Date">
-                        </div>
-                        <!--col-->
-                        <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Passport*</label>
+                            <label for="exampleInputEmail1">Passport</label>
                             <input name="passport" class="form-control form-control-sm" placeholder="Passport">
                         </div>
                         <!--col-->
@@ -157,6 +157,11 @@
                         <div class="form-group col-md-2">
                             <label for="exampleInputEmail1">Currency Rate</label>
                             <input type="text" name="currency_rate" class="form-control form-control-sm currency_rate" placeholder="Currency Rate">
+                        </div>
+                        <!--col-->
+                        <div class="form-group col-md-4">
+                            <label for="exampleInputEmail1">Remarks</label>
+                            <input name="remarks" class="form-control form-control-sm" placeholder="Remarks">
                         </div>
                         <!--col-->
                     </div>

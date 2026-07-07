@@ -34,4 +34,17 @@ class GeneralAccount extends Model
     {
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
+
+    public static function spoDropdown($selectedId = 0)
+    {
+        $list = '';
+        $accounts = self::where('is_spo', true)->orderBy('name')->get(['id', 'name']);
+
+        foreach ($accounts as $account) {
+            $selected = (string) $selectedId === (string) $account->id ? ' selected' : '';
+            $list .= '<option value="' . $account->id . '"' . $selected . '>' . e($account->name) . '</option>';
+        }
+
+        return $list;
+    }
 }
