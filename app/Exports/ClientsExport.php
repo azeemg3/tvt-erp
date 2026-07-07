@@ -18,7 +18,7 @@ class ClientsExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        $query = Client::with('recoveryOfficerAccount');
+        $query = Client::with(['spoAccount', 'recoveryOfficerAccount', 'marketingOfficerAccount']);
 
         if (! empty($this->search)) {
             $term = '%'.$this->search.'%';
@@ -38,7 +38,7 @@ class ClientsExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             'Client Code', 'Client Name', 'Mobile', 'Email', 'Category',
-            'Credit Limit', 'Credit Days', 'Recovery Officer', 'Status',
+            'Credit Limit', 'Credit Days', 'SPO', 'Recovery Officer', 'Marketing Officer', 'Status',
         ];
     }
 
@@ -52,7 +52,9 @@ class ClientsExport implements FromCollection, WithHeadings, WithMapping
             $client->category,
             number_format((float) $client->credit_limit, 2),
             $client->credit_days,
+            optional($client->spoAccount)->name,
             optional($client->recoveryOfficerAccount)->name,
+            optional($client->marketingOfficerAccount)->name,
             (int) $client->status === 1 ? 'Active' : 'Inactive',
         ];
     }

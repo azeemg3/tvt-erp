@@ -83,14 +83,15 @@ class TicketController extends Controller
         ];
         $this->validate($request, $rules, $message);
         $data=$request->except(['_token', 'type','leadID','inv_date', 'due_date','fourtnite',
-            'payment_type', 'remarks', 'account_code','ledger']);
+            'payment_type', 'remarks', 'account_code','ledger', 'spo_id']);
+        $data['passport']=$request->filled('passport') ? $request->passport : null;
         $sData['type']='1';
         $sData['inv_date']=$request->inv_date;
         $sData['due_date']=$request->due_date;
-        $sData['fourtnite']=$request->fourtnite;
         $sData['payment_type']=$request->payment_type;
-        $sData['remarks']=$request->remarks;
+        $sData['remarks']=$request->filled('remarks') ? $request->remarks : null;
         $sData['ledger']=$request->ledger;
+        $sData['spo_id']=$request->spo_id ?: null;
         $id=$request->id;
         DB::beginTransaction();
         //create account entry

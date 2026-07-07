@@ -8,7 +8,6 @@ use App\Helpers\LedgerAccountHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\GeneralAccount;
-use App\Models\User;
 use DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -94,14 +93,12 @@ class ClientController extends Controller
      */
     public function create()
     {
-        $users        = User::orderBy('name')->get();
         $categories   = Client::CATEGORIES;
         $nextCode     = AccountCodeHelper::nextTransactionCode(LedgerAccountHelper::clientGroupId());
 
         [$spos, $recoveryOfficers, $marketingOfficers] = $this->generalAccountOptions();
 
         return view('setup.clients.create', compact(
-            'users',
             'categories',
             'nextCode',
             'spos',
@@ -167,14 +164,12 @@ class ClientController extends Controller
     public function edit($id)
     {
         $client     = Client::findOrFail($id);
-        $users      = User::orderBy('name')->get();
         $categories = Client::CATEGORIES;
 
         [$spos, $recoveryOfficers, $marketingOfficers] = $this->generalAccountOptions();
 
         return view('setup.clients.edit', compact(
             'client',
-            'users',
             'categories',
             'spos',
             'recoveryOfficers',
@@ -267,7 +262,7 @@ class ClientController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $clients = Client::with('recoveryOfficerAccount')->orderBy('id', 'desc')->get();
+        $clients = Client::with(['spoAccount', 'recoveryOfficerAccount', 'marketingOfficerAccount'])->orderBy('id', 'desc')->get();
         $pdf     = PDF::loadView('setup.clients.pdf', compact('clients'))->setPaper('a4', 'landscape');
 
         return $pdf->download('clients_'.date('Ymd_His').'.pdf');
@@ -283,9 +278,7 @@ class ClientController extends Controller
             'email'               => 'nullable|email|max:255',
             'mobile'               => 'required|max:50',
             'co_spo'               => 'nullable|max:255',
-            'assigned_user_id'     => 'nullable|exists:users,id',
-            'recovery_officer_id'  => 'nullable|exists:users,id',
-            'spo_id'               => 'nullable|exists:general_accounts,id',
+            'spo_id'               => 'required|exists:general_accounts,id',
             'ro_id'                => 'nullable|exists:general_accounts,id',
             'marketing_officer_id' => 'nullable|exists:general_accounts,id',
             'category'             => 'required|in:'.implode(',', Client::CATEGORIES),
@@ -300,12 +293,21 @@ class ClientController extends Controller
             'mobile.required'           => 'Client Mobile is required.',
             'category.required'         => 'Category is required.',
             'email.email'               => 'Please enter a valid email address.',
+            'spo_id.required'           => 'SPO is required.',
             'spo_id.exists'             => 'The selected SPO is invalid.',
             'ro_id.exists'              => 'The selected Recovery Officer is invalid.',
             'marketing_officer_id.exists' => 'The selected Marketing Officer is invalid.',
         ];
 
         $validated = $request->validate($rules, $messages);
+
+        $this->assertGeneralAccountDesignation($validated['spo_id'], 'is_spo', 'SPO', 'spo_id');
+        if (! empty($validated['ro_id'])) {
+            $this->assertGeneralAccountDesignation($validated['ro_id'], 'is_ro', 'Recovery Officer', 'ro_id');
+        }
+        if (! empty($validated['marketing_officer_id'])) {
+            $this->assertGeneralAccountDesignation($validated['marketing_officer_id'], 'is_marketing_officer', 'Marketing Officer', 'marketing_officer_id');
+        }
 
         $validated['credit_limit'] = $validated['credit_limit'] ?? 0;
         $validated['credit_days']  = $validated['credit_days'] ?? 0;
@@ -345,5 +347,19 @@ class ClientController extends Controller
             ->get($columns);
 
         return [$spos, $recoveryOfficers, $marketingOfficers];
+    }
+
+    /**
+     * Ensure the selected General Account has the expected designation flag.
+     */
+    protected function assertGeneralAccountDesignation(int $id, string $flag, string $label, string $field): void
+    {
+        $account = GeneralAccount::find($id);
+
+        if (! $account || ! $account->{$flag}) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                $field => "The selected {$label} is not valid.",
+            ]);
+        }
     }
 }

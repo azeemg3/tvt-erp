@@ -40,13 +40,14 @@
                                         <tr><th>Client Name</th><td>{{ $client->client_name }}</td></tr>
                                         <tr><th>Email</th><td>{{ $client->email }}</td></tr>
                                         <tr><th>Mobile</th><td>{{ $client->mobile }}</td></tr>
-                                        <tr><th>C/O SPO</th><td>{{ optional($client->assignedUser)->name }}</td></tr>
+                                        <tr><th>SPO</th><td>{{ optional($client->spoAccount)->name ?? '-' }}</td></tr>
                                         <tr><th>Category</th><td>{{ $client->category }}</td></tr>
                                     </table>
                                 </div>
                                 <div class="col-md-6">
                                     <table class="table table-sm table-bordered">
-                                        <tr><th style="width:40%;">Recovery Officer</th><td>{{ optional($client->recoveryOfficer)->name }}</td></tr>
+                                        <tr><th style="width:40%;">Recovery Officer</th><td>{{ optional($client->recoveryOfficerAccount)->name ?? '-' }}</td></tr>
+                                        <tr><th>Marketing Officer</th><td>{{ optional($client->marketingOfficerAccount)->name ?? '-' }}</td></tr>
                                         <tr><th>Credit Limit</th><td>{{ number_format((float) $client->credit_limit, 2) }}</td></tr>
                                         <tr><th>Credit Days</th><td>{{ $client->credit_days }}</td></tr>
                                         <tr><th>Status</th><td>

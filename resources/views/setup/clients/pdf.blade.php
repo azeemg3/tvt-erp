@@ -28,7 +28,9 @@
             <th>Category</th>
             <th class="text-right">Credit Limit</th>
             <th class="text-right">Credit Days</th>
+            <th>SPO</th>
             <th>Recovery Officer</th>
+            <th>Marketing Officer</th>
             <th>Status</th>
         </tr>
         </thead>
@@ -43,7 +45,9 @@
                 <td>{{ $client->category }}</td>
                 <td class="text-right">{{ number_format((float) $client->credit_limit, 2) }}</td>
                 <td class="text-right">{{ $client->credit_days }}</td>
-                <td>{{ optional($client->recoveryOfficer)->name }}</td>
+                <td>{{ optional($client->spoAccount)->name }}</td>
+                <td>{{ optional($client->recoveryOfficerAccount)->name }}</td>
+                <td>{{ optional($client->marketingOfficerAccount)->name }}</td>
                 <td>{{ (int) $client->status === 1 ? 'Active' : 'Inactive' }}</td>
             </tr>
         @endforeach
