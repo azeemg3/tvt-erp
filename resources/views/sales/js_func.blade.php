@@ -19,12 +19,14 @@
         $(".tour_pax_list").html('')
     }
     $(document).ready(function () {
-        $(".ticket-no").keyup(function () {
-            if ($(this).val().length == 3) {
-                $(this).val($(this).val() + "-");         }
-            else if ($(this).val().length == 8) {
-                $(this).val($(this).val()+ "-");
-            }
+        $(document).on('input', '.ticket-no', function () {
+            var digits = $(this).val().replace(/\D/g, '').substring(0, 13);
+            var parts = [];
+            if (digits.length > 0) parts.push(digits.substring(0, 3));
+            if (digits.length > 3) parts.push(digits.substring(3, 7));
+            if (digits.length > 7) parts.push(digits.substring(7, 10));
+            if (digits.length > 10) parts.push(digits.substring(10, 13));
+            $(this).val(parts.join('-'));
         });
         //receiveable
         $(".basic_fare").keyup(function () {

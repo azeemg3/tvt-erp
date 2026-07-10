@@ -50,11 +50,6 @@
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Passport</label>
-                            <input name="passport" class="form-control form-control-sm" placeholder="Passport">
-                        </div>
-                        <!--col-->
-                        <div class="form-group col-md-2">
                             <label for="exampleInputEmail1">Pax Name</label>
                             <input name="pax_name" class="form-control form-control-sm" placeholder="Passenger Name">
                         </div>
@@ -68,14 +63,6 @@
                             <label for="exampleInputEmail1">Pax Type</label>
                             <select name="pax_type" class="form-control form-control-sm">
                                 {!! App\Helpers\CommonHelper::pax_type() !!}
-                            </select>
-                        </div>
-                        <!--col-->
-                        <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Source</label>
-                            <select name="source" class="form-control form-control-sm">
-                                <option value="">Select Gds</option>
-                                {!! App\Models\TicketSource::dropdown() !!}
                             </select>
                         </div>
                         <!--col-->
@@ -133,7 +120,7 @@
                         <!--col-->
                         <div class="form-group col-md-2">
                             <label for="exampleInputEmail1">Ticket No#</label>
-                            <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="Ticke Number" maxlength="15">
+                            <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric">
                         </div>
                         <!--col-->
                         <div class="col-sm-2">
