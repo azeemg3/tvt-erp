@@ -87,7 +87,7 @@
                             <label for="exampleInputEmail1">Route</label>
                             <select name="route" class="form-control form-control-sm">
                                 <option value="1">One Way</option>
-                                <option value="2">Two Way</option>
+                                <option value="2">Return</option>
                             </select>
                         </div>
                         <!--col-->
@@ -108,7 +108,8 @@
                         <!--col-->
                         <div class="form-group col-md-2">
                             <label for="exampleInputEmail1">Ticket No#</label>
-                            <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric">
+                            {{-- <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric"> --}}
+                            <input id="" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric">
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
