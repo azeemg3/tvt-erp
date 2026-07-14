@@ -12,12 +12,12 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Inv Date*</label>
-                            <input name="inv_date" class="form-control form-control-sm date" placeholder="Invice Date">
+                            <label for="exampleInputEmail1">Invoice Date <span class="text-danger">*</span></label>
+                            <input name="inv_date" class="form-control form-control-sm date" placeholder="Invoice Date">
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Due Date*</label>
+                            <label for="exampleInputEmail1">Due Date</label>
                             <input name="due_date" class="form-control form-control-sm date" placeholder="Due Date">
                         </div>
                         <!--col-->
@@ -31,9 +31,9 @@
                         <div class="col-sm-2">
                             <!-- text input -->
                             <div class="form-group">
-                                <label>Select Receiveable</label>
+                                <label>Receivable <span class="text-danger">*</span></label>
                                 <select name="ledger" class="form-control form-control-sm select2">
-                                    <option value="">Select Receiveable</option>
+                                    <option value="">Select Receivable</option>
                                     {!! App\Models\Accounts\TransactionAccount::client_dd() !!}
                                 </select>
                             </div>
@@ -41,7 +41,7 @@
                         <!--col-->
                         <div class="col-sm-2">
                             <div class="form-group">
-                                <label>Select SPO</label>
+                                <label>SPO <span class="text-danger">*</span></label>
                                 <select name="spo_id" class="form-control form-control-sm select2">
                                     <option value="">Select SPO</option>
                                     {!! App\Models\GeneralAccount::spoDropdown() !!}
@@ -50,7 +50,7 @@
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Pax Name</label>
+                            <label for="exampleInputEmail1">Pax Name <span class="text-danger">*</span></label>
                             <input name="pax_name" class="form-control form-control-sm" placeholder="Passenger Name">
                         </div>
                         <!--col-->
@@ -75,7 +75,7 @@
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Sector</label>
+                            <label for="exampleInputEmail1">Sector <span class="text-danger">*</span></label>
                             <input type="text" name="sector" class="form-control form-control-sm" placeholder="Sector">
                         </div>
                         <!--col-->
@@ -119,7 +119,7 @@
                         </div>
                         <!--col-->
                         <div class="form-group col-md-2">
-                            <label for="exampleInputEmail1">Ticket No#</label>
+                            <label for="exampleInputEmail1">Ticket No <span class="text-danger">*</span></label>
                             {{-- <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric"> --}}
                             <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric">
                         </div>
@@ -127,9 +127,9 @@
                         <div class="col-sm-2">
                             <!-- text input -->
                             <div class="form-group">
-                                <label>Select Vendor</label>
+                                <label>Vendor <span class="text-danger">*</span></label>
                                 <select name="payable_id" class="form-control form-control-sm select2">
-                                    <option value="">Select Payable</option>
+                                    <option value="">Select Vendor</option>
                                     {!! App\Models\Accounts\TransactionAccount::vendor_dd() !!}
                                 </select>
                             </div>

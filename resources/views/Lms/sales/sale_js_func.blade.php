@@ -509,14 +509,39 @@
             }
         })
     }
+    // Load invoice header fields without overwriting line-item id (must stay 0 for new tickets).
+    function edit_invoice_header(formData, id) {
+        $("#loader").show();
+        $.ajax({
+            url: '{{ url('lms/sale_invoice') }}/' + id + '/edit',
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function (data) {
+                for (i=0; i<Object.keys(data).length; i++){
+                    var key = Object.keys(data)[i];
+                    if(key === 'id') {
+                        continue;
+                    }
+                    $("#"+formData+ " input[name~='"+key+"']").val(Object.values(data)[i]);
+                    $("#"+formData+ " select[name~='"+key+"']").val(Object.values(data)[i]);
+                    $("#"+formData+ " textarea[name~='"+key+"']").val(Object.values(data)[i]);
+                }
+                $("#"+formData+" input[name~='SID']").val(id);
+                $("#"+formData+" input[name~='id']").val(0);
+                $('.select2').select2();
+                $("#"+formData).find(".btn-success").text('Submit');
+                $("#loader").hide();
+            }
+        })
+    }
     //edit any type of invoice ticket, hotel, visa, transport, tour etc.
     function edit_invoice(id, divModal, type, SID) {
         $("#"+divModal).modal();
         fData=$("#"+divModal).find('form').attr('id');
+        if($('#'+divModal).find('form')[0]) {
+            $('#'+divModal).find('form')[0].reset();
+        }
         $("#"+divModal+" input[name~='SID']").val(id);
-        $("input[name~='id']").each(function () {
-            $(this).val(0);
-        })
+        $("#"+divModal+" input[name~='id']").val(0);
         if(type==1) {
             get_ticket_invDetails(id, fData);
         }
@@ -541,8 +566,8 @@
         $(".select2").select2();
         if(type==5) {
             edit_tour_rec(id, fData, '{{ url('lms/sale_invoice') }}/' + id + '/edit');
-        }else{
-            edit_rec(fData,id, fData, '{{ url('lms/sale_invoice') }}/' + id + '/edit');
+        }else if(type!=7 && type!=8 && type!=9){
+            edit_invoice_header(fData, id);
         }
         if(type==7){
             $("#refund-modal").modal();

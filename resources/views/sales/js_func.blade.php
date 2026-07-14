@@ -3,12 +3,47 @@
     $(function () {
         $(".select2").select2()
     })
+    function today_date() {
+        if (typeof moment !== 'undefined') {
+            return moment().format(typeof APP_DATE_FORMAT !== 'undefined' ? APP_DATE_FORMAT : 'DD-MM-YYYY');
+        }
+        var d = new Date();
+        return ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + d.getFullYear();
+    }
+    function display_or_na(val, asNumber) {
+        if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
+            return 'N/A';
+        }
+        return asNumber ? number_format(val) : val;
+    }
+    function format_datetime(val) {
+        if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
+            return 'N/A';
+        }
+        if (typeof moment !== 'undefined') {
+            var m = moment(val);
+            if (m.isValid()) {
+                return m.format((typeof APP_DATE_FORMAT !== 'undefined' ? APP_DATE_FORMAT : 'DD-MM-YYYY') + ' HH:mm:ss');
+            }
+        }
+        var d = new Date(val);
+        if (isNaN(d.getTime())) {
+            return val;
+        }
+        return ('0' + d.getDate()).slice(-2) + '-' +
+            ('0' + (d.getMonth() + 1)).slice(-2) + '-' +
+            d.getFullYear() + ' ' +
+            ('0' + d.getHours()).slice(-2) + ':' +
+            ('0' + d.getMinutes()).slice(-2) + ':' +
+            ('0' + d.getSeconds()).slice(-2);
+    }
     function add_new_sale(mID, mForm) {
         $("#"+mID).modal();
         $('#'+mID).find('form')[0].reset();
         $("#"+mID).find("form input[name~='id']").val(0);
         $("#"+mID).find("form input[name~='SID']").val(0);
         $(".SID").val(0);
+        $("#"+mID).find("form input[name~='inv_date']").val(today_date());
         $("#"+mID).find(".btn-success").text('Submit');
         $(".select2").select2();
         $(".get_ticket_invDetails").html('');
@@ -95,6 +130,7 @@
                 }
                 $.each(vali, function( index, value ) {
                     $("#"+fData+ " input[name~='" + index + "']").css('border', '1px solid red');
+                    $("#"+fData+ " select[name~='" + index + "']").css('border', '1px solid red');
                     toastr.error(value);
                 });
                 $("#loader").hide();
@@ -116,13 +152,13 @@
                 for(i in data.data){
                     htmlData+='<tr id="'+data.data[i].id+'"  class="'+(data.data[i].total_posted>0?'bg-gradient-danger':'')+'">';
                     htmlData+='<td>'+(Number(i)+1)+'</td>';
-                    htmlData+='<td>'+data.data[i].id+'</td>';
-                    htmlData+='<td>'+data.data[i].inv_date+'</td>';
-                    htmlData+='<td>'+data.data[i].Trans_Acc_Name+'</td>';
-                    htmlData+='<td>'+(data.data[i].payable)+'</td>';
-                    htmlData+='<td>'+(data.data[i].total)+'</td>';
-                    htmlData+='<td>'+(data.data[i].discount)+'</td>';
-                    htmlData+='<td>'+(data.data[i].profit)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].id)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].inv_date)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].Trans_Acc_Name)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].payable, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].total, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].discount, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].profit, true)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_invoice('+data.data[i].id+', \'ticket-modal\', \'1\')"><i class="fa fa-edit"></i> </a>';
                     htmlData+=' <a href="{{ url('lms/lead_ticket') }}/'+data.data[i].id+'" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-print"></i> </a>';
@@ -151,13 +187,13 @@
                 for(i in data){
                     htmlData+='<tr id="'+data[i].id+'">';
                     htmlData+='<td>'+(Number(i)+1)+'</td>';
-                    htmlData+='<td>'+data[i].created_at+'</td>';
-                    htmlData+='<td>'+data[i].pax_name+'</td>';
-                    htmlData+='<td>'+data[i].pnr+'</td>';
-                    htmlData+='<td>'+data[i].ticket_no+'</td>';
-                    htmlData+='<td>'+number_format(data[i].basic_fare)+'</td>';
-                    htmlData+='<td>'+number_format(data[i].total_taxes)+'</td>';
-                    htmlData+='<td>'+number_format(data[i].receiveable)+'</td>';
+                    htmlData+='<td>'+format_datetime(data[i].created_at)+'</td>';
+                    htmlData+='<td>'+display_or_na(data[i].pax_name)+'</td>';
+                    htmlData+='<td>'+display_or_na(data[i].pnr)+'</td>';
+                    htmlData+='<td>'+display_or_na(data[i].ticket_no)+'</td>';
+                    htmlData+='<td>'+display_or_na(data[i].basic_fare, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data[i].total_taxes, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data[i].receiveable, true)+'</td>';
                     htmlData+='<td>';
                     htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_rec(this,'+data[i].id+', \'ticket-form\', \'{{ url('lms/lead_ticket') }}/' + data[i].id + '/edit\')"><i class="fa fa-edit"></i> </a>';
                     htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data[i].id+'\', \'{{ url('lms/lead_ticket/') }}/'+data[i].id+'\')"><i class="fa fa-trash"></i> </a>';
@@ -472,14 +508,39 @@
             }
         })
     }
+    // Load invoice header fields without overwriting line-item id (must stay 0 for new tickets).
+    function edit_invoice_header(formData, id) {
+        $("#loader").show();
+        $.ajax({
+            url: '{{ url('lms/sale_invoice') }}/' + id + '/edit',
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            success: function (data) {
+                for (i=0; i<Object.keys(data).length; i++){
+                    var key = Object.keys(data)[i];
+                    if(key === 'id') {
+                        continue;
+                    }
+                    $("#"+formData+ " input[name~='"+key+"']").val(Object.values(data)[i]);
+                    $("#"+formData+ " select[name~='"+key+"']").val(Object.values(data)[i]);
+                    $("#"+formData+ " textarea[name~='"+key+"']").val(Object.values(data)[i]);
+                }
+                $("#"+formData+" input[name~='SID']").val(id);
+                $("#"+formData+" input[name~='id']").val(0);
+                $('.select2').select2();
+                $("#"+formData).find(".btn-success").text('Submit');
+                $("#loader").hide();
+            }
+        })
+    }
     //edit any type of invoice ticket, hotel, visa, transport, tour etc.
     function edit_invoice(id, divModal, type, SID) {
         $("#"+divModal).modal();
         fData=$("#"+divModal).find('form').attr('id');
+        if($('#'+divModal).find('form')[0]) {
+            $('#'+divModal).find('form')[0].reset();
+        }
         $("#"+divModal+" input[name~='SID']").val(id);
-        $("input[name~='id']").each(function () {
-            $(this).val('0');
-        })
+        $("#"+divModal+" input[name~='id']").val(0);
         if(type==1) {
             get_ticket_invDetails(id, fData);
         }
@@ -502,8 +563,8 @@
         $(".select2").select2();
         if(type==5) {
             edit_tour_rec(id, fData, '{{ url('lms/sale_invoice') }}/' + id + '/edit');
-        }else{
-            edit_rec(fData,id, fData, '{{ url('lms/sale_invoice') }}/' + id + '/edit');
+        }else if(type!=7 && type!=8){
+            edit_invoice_header(fData, id);
         }
         if(type==7){
             $("#refund-modal").modal();

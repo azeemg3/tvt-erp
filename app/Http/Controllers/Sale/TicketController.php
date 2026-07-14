@@ -61,11 +61,12 @@ class TicketController extends Controller
             'inv_date'=>'required',
             'pax_name'=>'required',
             'sector'=>'required',
-            'departure_date'=>'required',
+            // 'departure_date'=>'required',
             'ticket_no'=>'required',
             'basic_fare'=>'required',
             'receiveable'=>'required',
             'ledger'=>'required',
+            'spo_id'=>'required',
             'payable_id'=>'required',
             'payable'=>'required',
         ];
@@ -77,7 +78,8 @@ class TicketController extends Controller
             'ticket_no.required'=>'Ticket No Required',
             'basic_fare.required'=>'Basic Fare Required',
             'receiveable.required'=>'Receiveable Fare Required',
-            'ledger.required'=>'Please Select Receiveable Account',
+            'ledger.required'=>'Please Select Receivable Account',
+            'spo_id.required'=>'Please Select SPO',
             'payable_id.required'=>'Please Select Vendor Account',
             'payable.required'=>'Payable Amount Required',
         ];
@@ -103,23 +105,35 @@ class TicketController extends Controller
         $tdata['status']=1;
         $tdata['payment_type']=$request->payment_type;
         try {
-            if ($id == '' || $id == 0) {
+            // Treat missing ticket rows as create (e.g. form id was wrongly set to invoice id).
+            $existingTicket = ($id !== '' && $id !== null && (int)$id > 0) ? Ticket::find($id) : null;
+            if (!$existingTicket) {
                 $sData['created_by']=Auth::user()->id;
-                if($id==0 && $request->SID==0) {
+                if((int)$request->SID === 0) {
 //                    Lead::change_lead_status($request->leadID, 2);
+                    $sData['trans_code']=Account::trans_code();
                     $ret = SaleInvoice::create($sData);
                     $data['SID'] = $ret->id;
                     $SID=$ret->id;
                 }else{
                     $data['SID']=$request->SID;
                     $SID=$request->SID;
+                    SaleInvoice::where('id', $request->SID)->update([
+                        'inv_date' => $sData['inv_date'],
+                        'due_date' => $sData['due_date'],
+                        'payment_type' => $sData['payment_type'],
+                        'remarks' => $sData['remarks'],
+                        'ledger' => $sData['ledger'],
+                        'spo_id' => $sData['spo_id'],
+                        'updated_by' => Auth::user()->id,
+                    ]);
                 }
                 $data['trans_code']=Account::trans_code();
                 Ticket::create($data);
                 $tdata['Created_By']=Auth::user()->id;
                 $tdata['dr_cr']=1;
                 $tdata['trans_acc_id']=$request->ledger;
-                $tdata['trans_code']=Account::trans_code();
+                $tdata['trans_code']=$data['trans_code'];
                 Transaction::create($tdata);
                 //cr to vendor
                 $tdata['dr_cr']=2;
@@ -178,8 +192,12 @@ class TicketController extends Controller
             } else {
                 $sData['updated_by']=Auth::user()->id;
                 SaleInvoice::where('id', $request->SID)->update($sData);
+                $tc = $existingTicket->trans_code;
+                if (empty($tc)) {
+                    $tc = Account::trans_code();
+                    $data['trans_code'] = $tc;
+                }
                 Ticket::where('id', $id)->update($data);
-                $tc=Ticket::where('id', $id)->value('trans_code');
                 Transaction::where('trans_code', $tc)->delete();
                 $tdata['trans_code']=$tc;
                 $tdata['Created_By']=Auth::user()->id;
