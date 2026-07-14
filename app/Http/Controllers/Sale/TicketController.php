@@ -85,7 +85,7 @@ class TicketController extends Controller
         $data=$request->except(['_token', 'type','leadID','inv_date', 'due_date','fourtnite',
             'payment_type', 'remarks', 'account_code','ledger', 'spo_id']);
         $data['passport']=$request->filled('passport') ? $request->passport : null;
-        $data['source']=$request->filled('source') ? $request->source : null;
+        // $data['source']=$request->filled('source') ? $request->source : null;
         $sData['type']='1';
         $sData['inv_date']=$request->inv_date;
         $sData['due_date']=$request->due_date;
