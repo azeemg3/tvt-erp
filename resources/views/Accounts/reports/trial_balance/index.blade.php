@@ -25,37 +25,38 @@
                         <!-- /.card-header -->
                         <div class="card-body">
                             <h5 align="center"><span style="border-bottom: double">Trial Balance</span></h5>
-                            <p style="font-size: 12px;text-align: center">As on {{ date('d-m-Y') }}</p>
+                            <p style="font-size: 12px;text-align: center">As on {{ date('d-m-Y', strtotime($asOn)) }}</p>
+                            @if(abs($dr - $cr) > 0.01)
+                                <div class="alert alert-warning py-2">
+                                    Debit and Credit totals do not match (difference: {{ number_format(abs($dr - $cr), 2) }}).
+                                    Check Umrah / voucher postings for unbalanced entries.
+                                </div>
+                            @endif
                             <button class="btn btn-xs btn-primary float-right exportToExcel"><i class="fa fa-file-excel"> Export</i> </button>
                             <table id="table2excel" class="table table-striped table-hover">
                                 <thead>
                                 <tr>
                                     <th width="80%">Account Name</th>
-                                    <th style="text-align: left">Debit</th>
+                                    <th style="text-align: right">Debit</th>
                                     <th style="text-align: right">Credit</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <?php $dr=0; $cr=0; ?>
-                                @foreach($result as $item)
-                                    <?php
-                                    $balance=App\Helpers\Account::ob(date('Y-m-d'), $item->id);
-                                    if($balance>0){
-                                        $dr+=$balance;
-                                    }else{
-                                        $cr+=$balance;
-                                    }
-                                    ?>
+                                @forelse($rows as $item)
                                     <tr>
-                                        <td>{{ $item->Trans_Acc_Name }}</td>
-                                        <td style="text-align: left">@if($balance>0) {{ App\Helpers\Account::show_bal_format($balance) }} @else 0.00 @endif</td>
-                                        <td style="text-align: right">@if($balance<0) {{ App\Helpers\Account::show_bal_format($balance) }} @else 0.00 @endif</td>
+                                        <td>{{ $item['name'] }}</td>
+                                        <td style="text-align: right">{{ $item['debit'] > 0 ? number_format($item['debit'], 2) : '0.00' }}</td>
+                                        <td style="text-align: right">{{ $item['credit'] > 0 ? number_format($item['credit'], 2) : '0.00' }}</td>
                                     </tr>
-                                    @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="text-center">No account balances found.</td>
+                                    </tr>
+                                @endforelse
                                 <tr>
                                     <th>Total</th>
-                                    <th style="border-bottom: double;border-top: double;text-align: right">{{ App\Helpers\Account::show_bal_format($dr) }}</th>
-                                    <th style="border-bottom: double;border-top: double;text-align: right">{{ App\Helpers\Account::show_bal_format($cr) }}</th>
+                                    <th style="border-bottom: double;border-top: double;text-align: right">{{ number_format($dr, 2) }}</th>
+                                    <th style="border-bottom: double;border-top: double;text-align: right">{{ number_format($cr, 2) }}</th>
                                 </tr>
                                 </tbody>
                             </table>
@@ -75,31 +76,14 @@
     <script src="{{ URL::asset('public/export_excel/jquery.table2excel.js') }}"></script>
     <script>
         $(function () {
-            //Initialize Select2 Elements
             $('.select2').select2();
-
         });
-        function get_data(){
-            $("#loader").show();
-            $.ajax({
-                url:"{{ url('Accounts/reports/get_ledger') }}",
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                type:"POST",
-                data:$("#form").serialize(),
-                dataType:"JSON",
-                success:function (data) {
-                    $("#get_data").html(data.data);
-                    $("#loader").hide();
-                }
-            })
-        }
     </script>
     <script>
         var jq = $.noConflict();
         jq(document).ready(function(){
             $(".exportToExcel").click(function () {
                 jq("#table2excel").table2excel({
-                    filename: "Employees.xls",
                     exclude: ".noExl",
                     name: "Excel Document Name",
                     filename: "trailBalance" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xls",

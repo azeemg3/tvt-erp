@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Accounts\Reports;
 
+use App\Helpers\Account;
 use App\Http\Controllers\Controller;
 use App\Models\Accounts\TransactionAccount;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ class TraialBalanceController extends Controller
     {
         $this->middleware('permission:account_reports_view', ['only' => ['index']]);
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -19,8 +21,34 @@ class TraialBalanceController extends Controller
      */
     public function index()
     {
-        $result=TransactionAccount::all();
-        return view('Accounts.reports.trial_balance.index',compact('result'));
+        // Account::ob($date) returns balance BEFORE $date.
+        // Pass tomorrow so "As on today" includes today's postings.
+        $asOn = date('Y-m-d');
+        $obDate = date('Y-m-d', strtotime('+1 day', strtotime($asOn)));
+
+        $rows = [];
+        $dr = 0;
+        $cr = 0;
+
+        foreach (TransactionAccount::orderBy('Trans_Acc_Name')->get() as $account) {
+            $balance = (float) Account::ob($obDate, $account->id);
+            if (abs($balance) < 0.00001) {
+                continue;
+            }
+
+            $debit = $balance > 0 ? $balance : 0;
+            $credit = $balance < 0 ? abs($balance) : 0;
+            $dr += $debit;
+            $cr += $credit;
+
+            $rows[] = [
+                'name'   => $account->Trans_Acc_Name,
+                'debit'  => $debit,
+                'credit' => $credit,
+            ];
+        }
+
+        return view('Accounts.reports.trial_balance.index', compact('rows', 'dr', 'cr', 'asOn'));
     }
 
     /**

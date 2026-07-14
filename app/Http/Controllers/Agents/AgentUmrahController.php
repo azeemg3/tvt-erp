@@ -5,7 +5,6 @@ use AmrShawky\LaravelCurrency\Facade\Currency;
 use App\Http\Controllers\Controller;
 use App\Mail\UmrahVouhcerEmail;
 use App\Models\Agent\AgentPayment_voucher;
-use App\Models\Crm\AgentPaymentVoucher;
 use App\Models\Hotel;
 use App\Models\HotelAgentPrice;
 use App\Models\HotelsRate;
@@ -539,95 +538,136 @@ class AgentUmrahController extends Controller
                 ->select(DB::raw('sum(h.net_rate) AS total_hotel'))->where('UID', $id)->first();
             $payment_to=TransactionAccount::where('PID',21)
                 ->where('Parent_Type',$agentID)->first();
+            if(!$payment_to){
+                DB::rollback();
+                return response()->json([
+                    'success' => 'false',
+                    'errors'  => ['Agent receivable account not found.'],
+                ], 400);
+            }
             $visa=DB::table('agent_umrah_pax_details AS p')
                 ->select(DB::raw('sum(p.visa_rate) AS total_visa'),
                     DB::raw('sum(p.flight_price) AS total_flight'))->where('UID', $id)->first();
             $total=($transport->total_transport)+($hotel->total_hotel)+($visa->total_visa)+($UID->hotel_brn_price)+($UID->transport_brn_price);
-            $ex_voucher=AgentPaymentVoucher::where('invID', $id)->first();
-            if($ex_voucher) {
-                Transaction::where('trans_code', $ex_voucher->trans_code)->delete();
+            $rate = ($UID->conversion_rate > 0) ? (float) $UID->conversion_rate : 1;
+
+            // One voucher per booking; remove any prior GL lines for this booking before re-posting
+            $existingVouchers = AgentPayment_voucher::where('invID', $id)->get();
+            $transCodes = $existingVouchers->pluck('trans_code')->filter()->unique()->values();
+            if ($transCodes->isNotEmpty()) {
+                Transaction::whereIn('trans_code', $transCodes)->delete();
             }
-            $data['transaction_date']=date('Y-m-d');
-            $data['agentID']=$agentID;
-            if($UID->conversion_rate>0) {
-                $data['amount'] = $total * $UID->conversion_rate;
-            }else{
-                $data['amount'] = $total;
-            }
-            $data['invID']=$id;
-            $data['narration']='Umrah Booking against reference number ('.$id.')';
-            if($ex_voucher==null) {
-                $data['trans_code']=Account::trans_code();
-                $data['created_at']=date('Y-m-d h:i:s');
+            // Also clear any leftover unbalanced lines from older buggy re-approvals
+            Transaction::where('narration', 'Umrah Booking against reference number ('.$id.')')->delete();
+
+            $ex_voucher = $existingVouchers->first();
+            $transCode = $ex_voucher && $ex_voucher->trans_code
+                ? $ex_voucher->trans_code
+                : Account::trans_code();
+
+            $voucherAmount = $total * $rate;
+            $data = [
+                'transaction_date' => date('Y-m-d'),
+                'agentID' => $agentID,
+                'amount' => $voucherAmount,
+                'invID' => $id,
+                'narration' => 'Umrah Booking against reference number ('.$id.')',
+                'trans_code' => $transCode,
+            ];
+            if ($ex_voucher == null) {
+                $data['created_at'] = date('Y-m-d h:i:s');
                 AgentPayment_voucher::insert($data);
-            }else{
-                $data['updated_at']=date('Y-m-d h:i:s');
-                AgentPayment_voucher::where('invID', $ex_voucher->invID)->update($data);
+            } else {
+                $data['updated_at'] = date('Y-m-d h:i:s');
+                AgentPayment_voucher::where('id', $ex_voucher->id)->update($data);
+                AgentPayment_voucher::where('invID', $id)->where('id', '!=', $ex_voucher->id)->delete();
             }
-            //transaction entry
-            $tData['trans_date']=date('Y-m-d');
-            $tData['posting_date']=date('Y-m-d');
-            $tData['narration']='Umrah Booking against reference number ('.$id.')';
-            if($UID->conversion_rate>0) {
-                $tData['amount']=($total*$UID->conversion_rate)-$visa->total_flight;
-            }else{
-                $tData['amount']=$total-$visa->total_flight;
-            }
-            $tData['status']=1;
-            $tData['vt']=2;
-            $tData['dr_cr']=1;
-            $tData['trans_code']=Account::trans_code();
-            $tData['trans_acc_id']=$payment_to->id;
-            Transaction::create($tData);
-            //transport cost
-            $tData['dr_cr']=2;
-            $tData['vt']=12;
-            $trans_transports=DB::table('agent_umrah_transport_details')
+
+            // Build credit lines first so debit can match (keeps trail balance in balance)
+            $creditLines = [];
+            $trans_transports = DB::table('agent_umrah_transport_details')
                 ->select('agent_umrah_transport_details.*')
                 ->where('UID', $id)->where('TRID', '!=', 0)->get();
-            foreach ($trans_transports as $trans_transport){
-                if($trans_transport->arrangement==0) {
+            foreach ($trans_transports as $trans_transport) {
+                if ($trans_transport->arrangement == 0) {
                     $tr_source = TransportRate::where('id', $trans_transport->TRID)->first();
-                    $tData['trans_acc_id'] = $tr_source->source;
-                    $tData['amount'] = ($trans_transport->transport_cost)*($UID->conversion_rate);
-                    Transaction::create($tData);
-                }
-            }
-            //hotel cost
-            $trans_hotels=DB::table('agent_umrah_hotel_details')
-                ->select('agent_umrah_hotel_details.*')->where('UID', $id)->get();
-            foreach ($trans_hotels as $trans_hotel){
-                if($trans_hotel->arrangement==0) {
-                    $h_source = HotelsRate::where('id', $trans_hotel->HRID)->first();
-                    if($h_source) {
-                        $tData['trans_acc_id'] = $h_source->source;
-                        $tData['amount'] = ($trans_hotel->hotel_cost)*($UID->conversion_rate);
-                        Transaction::create($tData);
+                    if ($tr_source && $tr_source->source) {
+                        $amount = (float) $trans_transport->transport_cost * $rate;
+                        if ($amount > 0) {
+                            $creditLines[] = ['trans_acc_id' => $tr_source->source, 'amount' => $amount];
+                        }
                     }
                 }
             }
-            //visa cost
-            $trans_visas=DB::table('agent_umrah_pax_details')
-                ->select('agent_umrah_pax_details.*')->where('UID', $id)->get();
-            foreach ($trans_visas as $trans_visa){
-                $v_source=VisaRate::where('id', $trans_visa->VRID)->first();
-                if($v_source) {
-                    $tData['trans_acc_id'] = $v_source->source;
-                    $tData['amount'] = ($trans_visa->visa_cost)*($UID->conversion_rate);
-                    Transaction::create($tData);
+            $trans_hotels = DB::table('agent_umrah_hotel_details')
+                ->select('agent_umrah_hotel_details.*')->where('UID', $id)->get();
+            foreach ($trans_hotels as $trans_hotel) {
+                if ($trans_hotel->arrangement == 0) {
+                    $h_source = HotelsRate::where('id', $trans_hotel->HRID)->first();
+                    if ($h_source && $h_source->source) {
+                        $amount = (float) $trans_hotel->hotel_cost * $rate;
+                        if ($amount > 0) {
+                            $creditLines[] = ['trans_acc_id' => $h_source->source, 'amount' => $amount];
+                        }
+                    }
                 }
             }
+            $trans_visas = DB::table('agent_umrah_pax_details')
+                ->select('agent_umrah_pax_details.*')->where('UID', $id)->get();
+            foreach ($trans_visas as $trans_visa) {
+                $v_source = VisaRate::where('id', $trans_visa->VRID)->first();
+                if ($v_source && $v_source->source) {
+                    $amount = (float) $trans_visa->visa_cost * $rate;
+                    if ($amount > 0) {
+                        $creditLines[] = ['trans_acc_id' => $v_source->source, 'amount' => $amount];
+                    }
+                }
+            }
+
+            $creditTotal = array_sum(array_column($creditLines, 'amount'));
+            if ($creditTotal <= 0) {
+                DB::rollback();
+                return response()->json([
+                    'success' => 'false',
+                    'errors'  => ['No credit amounts to post. Check hotel/transport/visa costs and sources.'],
+                ], 400);
+            }
+
+            $base = [
+                'trans_date' => date('Y-m-d'),
+                'posting_date' => date('Y-m-d'),
+                'narration' => 'Umrah Booking against reference number ('.$id.')',
+                'status' => 1,
+                'trans_code' => $transCode,
+            ];
+
+            // Debit agent receivable for exact credit total (balanced double-entry)
+            Transaction::create(array_merge($base, [
+                'vt' => 2,
+                'dr_cr' => 1,
+                'trans_acc_id' => $payment_to->id,
+                'amount' => $creditTotal,
+            ]));
+
+            foreach ($creditLines as $line) {
+                Transaction::create(array_merge($base, [
+                    'vt' => 12,
+                    'dr_cr' => 2,
+                    'trans_acc_id' => $line['trans_acc_id'],
+                    'amount' => $line['amount'],
+                ]));
+            }
+
 //            UmrahVouhcerEmail::dispatch()->delay(now()->addSeconds(30));
 //            self::email_voucher($id);
             DB::commit();
         }catch (\Illuminate\Database\QueryException $e){
-            $code = $e->errorInfo[1];
+            DB::rollback();
             return response()->json([
                 'success' => 'false',
                 'errors'  => $e->errorInfo,
                 'code'  => $e->errorInfo,
             ], 400);
-            DB::rollback();
         }
         return response()->json(['success' => 'Approved Successfully']);
 

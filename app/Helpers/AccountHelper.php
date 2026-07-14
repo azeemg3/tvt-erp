@@ -74,25 +74,25 @@ class Account{
         $df=date('Y-m-d', strtotime('0 day', strtotime('2015-08-10')));
         $dt=date('Y-m-d', strtotime('-1 day', strtotime($date)));
         $ob_res=TransactionAccount::find($tid);
-        if($ob_res->OB_Type=='1'){
-            $opening_balance=$ob_res->ob;
-        }else{
-            $opening_balance=-$ob_res->ob;
+        if(!$ob_res){
+            return 0;
         }
-        $dr=Transaction::where(['trans_acc_id'=>$tid, 'dr_cr'=>1])
+        // Column names are OB / OB_Type (not ob / ob_type)
+        $obAmount = (float) ($ob_res->OB ?? 0);
+        if((string)$ob_res->OB_Type === '1'){
+            $opening_balance = $obAmount;
+        }else{
+            $opening_balance = -$obAmount;
+        }
+        $dr=Transaction::where(['trans_acc_id'=>$tid, 'dr_cr'=>1, 'status'=>1])
             ->where(function($query) use ($df, $dt){
             $query->WhereBetween('trans_date', [$df, $dt]);
         })->sum('amount');
-        $cr=Transaction::where(['trans_acc_id'=>$tid, 'dr_cr'=>2])
+        $cr=Transaction::where(['trans_acc_id'=>$tid, 'dr_cr'=>2, 'status'=>1])
             ->where(function ($query) use ($df, $dt){
             $query->WhereBetween('trans_date', [$df, $dt]);
         })->sum('amount');
-        $ob=$opening_balance+($dr-$cr);
-        if($ob>0){
-            return $ob;
-        }else{
-            return $ob;
-        }
+        return $opening_balance+($dr-$cr);
     }
     //@dr or cr
     public static function show_bal($bal){
