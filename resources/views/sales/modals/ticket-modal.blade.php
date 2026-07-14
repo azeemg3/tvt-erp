@@ -121,7 +121,7 @@
                         <div class="form-group col-md-2">
                             <label for="exampleInputEmail1">Ticket No#</label>
                             {{-- <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm ticket-no" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric"> --}}
-                            <input id="" type="text" name="ticket_no" class="form-control form-control-sm" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric">
+                            <input id="ticket-no" type="text" name="ticket_no" class="form-control form-control-sm" placeholder="123-1234-432-345" maxlength="16" inputmode="numeric">
                         </div>
                         <!--col-->
                         <div class="col-sm-2">
