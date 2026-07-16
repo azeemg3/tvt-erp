@@ -11,6 +11,7 @@ use DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 
@@ -157,7 +158,7 @@ class VendorController extends Controller
     public function update(Request $request, $id)
     {
         $vendor = Vendor::findOrFail($id);
-        $data   = $this->validateVendor($request);
+        $data   = $this->validateVendor($request, $vendor->id);
 
         DB::beginTransaction();
         try {
@@ -244,10 +245,17 @@ class VendorController extends Controller
     /**
      * Validation rules shared by store / update.
      */
-    protected function validateVendor(Request $request): array
+    protected function validateVendor(Request $request, ?int $ignoreVendorId = null): array
     {
+        $uniqueName = Rule::unique('vendors', 'vendor_name')
+            ->whereNull('deleted_at');
+
+        if ($ignoreVendorId) {
+            $uniqueName->ignore($ignoreVendorId);
+        }
+
         $rules = [
-            'vendor_name'     => 'required|max:255',
+            'vendor_name'     => ['required', 'max:255', $uniqueName],
             'vendor_type'     => 'required|in:'.implode(',', Vendor::TYPES),
             'contact_person'  => 'nullable|max:255',
             'email'           => 'nullable|email|max:255',
@@ -267,6 +275,7 @@ class VendorController extends Controller
 
         $messages = [
             'vendor_name.required' => 'Vendor Name is required.',
+            'vendor_name.unique'   => 'This vendor name already exists. Please use a different name.',
             'vendor_type.required' => 'Vendor Type is required.',
             'mobile.required'      => 'Mobile is required.',
             'email.email'          => 'Please enter a valid email address.',
