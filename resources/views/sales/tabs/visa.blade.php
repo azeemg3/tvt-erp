@@ -20,6 +20,12 @@
                 </div>
             </div>
             <!--col-->
+            <div class="col-md-2">
+                <div class="form-group">
+                    <input type="text" name="inv_no" class="form-control form-control-sm" placeholder="Invoice No" inputmode="numeric">
+                </div>
+            </div>
+            <!--col-->
             <div class="col-md-1">
                 <div class="form-group">
                     <button type="button" class="btn btn-info btn-xs" onclick="get_visa_invoice(1, true)"><i class="fa fa-search"></i> </button>
@@ -28,8 +34,9 @@
         </div>
         <!--row-->
     </form>
-    <button type="button" onclick="add_new_sale('visa-modal')" class="btn btn-primary btn-xs btn-flat float-right">Add New</button>
-    <table class="table  table-bordered">
+    <button type="button" onclick="add_new_sale('visa-modal')" class="btn btn-primary btn-xs btn-flat float-right mb-2">Add New</button>
+    <div class="table-responsive">
+    <table id="visa-sale-table" class="table table-bordered table-striped sale-data-table w-100">
         <thead>
         <tr class="table-active">
             <th>#</th>
@@ -45,8 +52,6 @@
         </thead>
         <tbody id="get_visa_invoice"></tbody>
     </table>
-    <div class="card-footer clearfix">
-        <div class="pagination-panel"></div>
     </div>
 </div>
 @include('sales.modals.visa-modal')

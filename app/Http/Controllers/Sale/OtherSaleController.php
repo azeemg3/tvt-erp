@@ -25,13 +25,17 @@ class OtherSaleController extends Controller
             ->join('other_sales','sale_invoices.id', '=','other_sales.SID')
             ->select('sale_invoices.*', DB::raw('sum(other_sales.receiveable) as total'),
                 DB::raw('count(other_sales.id) as totalPax'))->where(['sale_invoices.type'=>6])
-            ->whereBetween(DB::raw('DATE(sale_invoices.created_at)'),Account::financial_year())
-            ->when($request->df, function ($query)use ($request){
-                $query->whereBetween(DB::raw('DATE(other_sales.created_at)'), [$request->df, $request->dt]);
-            })->when($request->ledger, function ($query)use ($request){
-                $query->where('sale_invoices.ledger', $request->ledger);
+            ->when(!$request->filled('inv_no'), function ($query) {
+                $query->whereBetween(DB::raw('DATE(sale_invoices.created_at)'), Account::financial_year());
             })
-            ->groupBy('other_sales.SID')->paginate(15);
+            ->when($request->df && !$request->filled('inv_no'), function ($query) use ($request) {
+                $query->whereBetween(DB::raw('DATE(other_sales.created_at)'), [$request->df, $request->dt]);
+            })->when($request->ledger, function ($query) use ($request) {
+                $query->where('sale_invoices.ledger', $request->ledger);
+            })->when($request->filled('inv_no'), function ($query) use ($request) {
+                $query->where('sale_invoices.id', $request->inv_no);
+            })
+            ->groupBy('other_sales.SID')->paginate(1000);
         return $result;
     }
 

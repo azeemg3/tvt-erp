@@ -31,14 +31,18 @@ class TourController extends Controller
                 ->select('sale_invoices.*',
                     DB::raw('sum(t.receiveable)+ sum(h.receiveable) as total'),
                 DB::raw('count(t.id)+count(h.id) as totalPax'))->where(['type'=>5])
-            ->whereBetween(DB::raw('DATE(sale_invoices.created_at)'),Account::financial_year())
-            ->when($request->df, function ($query)use ($request){
+            ->when(!$request->filled('inv_no'), function ($query) {
+                $query->whereBetween(DB::raw('DATE(sale_invoices.created_at)'), Account::financial_year());
+            })
+            ->when($request->df && !$request->filled('inv_no'), function ($query) use ($request) {
                 $query->whereBetween(DB::raw('DATE(sale_invoices.created_at)'), [$request->df, $request->dt]);
-            })->when($request->ledger, function ($query)use ($request){
+            })->when($request->ledger, function ($query) use ($request) {
                 $query->where('sale_invoices.ledger', $request->ledger);
+            })->when($request->filled('inv_no'), function ($query) use ($request) {
+                $query->where('sale_invoices.id', $request->inv_no);
             })
             ->groupBy('sale_invoices.id')
-            ->paginate(15);
+            ->paginate(1000);
 //        $result=DB::table('sale_invoices')
 //            ->leftjoin('tickets','tickets.id', '=','sale_invoices.SID')
 //            ->leftjoin('lead_hotels','sale_invoices.id', '=','lead_hotels.SID')

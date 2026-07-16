@@ -1,7 +1,31 @@
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    if (typeof window.jQuery === 'undefined') {
+        document.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"><\/script>');
+    }
+</script>
 <script type="text/javascript">
     $(function () {
-        $(".select2").select2()
+        if ($.fn.select2) {
+            $(".select2").select2();
+        }
+        $(document).on('keydown', '#ticket-search-form input[name="inv_no"]', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); get_ticket_invoice(1, true); }
+        });
+        $(document).on('keydown', '#hotel-search-form input[name="inv_no"]', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); get_hotel_invoice(1, true); }
+        });
+        $(document).on('keydown', '#visa-search-form input[name="inv_no"]', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); get_visa_invoice(1, true); }
+        });
+        $(document).on('keydown', '#transport-search-form input[name="inv_no"]', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); get_transport_invoice(1, true); }
+        });
+        $(document).on('keydown', '#tour-search-form input[name="inv_no"]', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); get_tour_invoice(1, true); }
+        });
+        $(document).on('keydown', '#other-search-form input[name="inv_no"]', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); get_other_invoice(1, true); }
+        });
     })
     function today_date() {
         if (typeof moment !== 'undefined') {
@@ -15,6 +39,56 @@
             return 'N/A';
         }
         return asNumber ? number_format(val) : val;
+    }
+    function destroy_sale_datatable(tableSelector) {
+        var $ = window.jQuery;
+        if (!$ || !$.fn || !$.fn.DataTable) {
+            return;
+        }
+        var $table = $(tableSelector);
+        if ($table.length && $.fn.DataTable.isDataTable($table)) {
+            $table.DataTable().destroy();
+            $table.removeClass('dataTable').css('width', '100%');
+        }
+    }
+    function refresh_sale_datatable(tableSelector, retries) {
+        var $ = window.jQuery;
+        if (!$ || !$.fn || !$.fn.DataTable) {
+            if ((retries || 0) < 50) {
+                return setTimeout(function () {
+                    refresh_sale_datatable(tableSelector, (retries || 0) + 1);
+                }, 150);
+            }
+            console.warn('DataTables not available for', tableSelector);
+            return;
+        }
+        var $table = $(tableSelector);
+        if (!$table.length) {
+            console.warn('Sale table not found:', tableSelector);
+            return;
+        }
+        if ($.fn.DataTable.isDataTable($table)) {
+            $table.DataTable().destroy();
+        }
+        try {
+            $table.DataTable({
+                destroy: true,
+                autoWidth: false,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+                order: [[1, 'desc']],
+                columnDefs: [
+                    { orderable: false, targets: -1 },
+                    { searchable: false, targets: -1 }
+                ],
+                language: {
+                    search: 'Search:',
+                    searchPlaceholder: 'Invoice no, client name...'
+                }
+            });
+        } catch (e) {
+            console.error('DataTables init failed:', e);
+        }
     }
     function format_datetime(val) {
         if (val === null || val === undefined || val === '' || val === 'null' || val === 'undefined') {
@@ -137,7 +211,7 @@
             }
         })
     }
-    get_ticket_invoice(1);
+    // Initial ticket load runs from @push('scripts') after DataTables is attached.
     //fetch ticket invoice data
     function get_ticket_invoice(page, srch) {
         $("#loader").show();
@@ -166,11 +240,12 @@
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
+                destroy_sale_datatable('#ticket-sale-table');
                 $("#get_ticket_inv").html(htmlData);
+                refresh_sale_datatable('#ticket-sale-table');
                 if(srch==undefined) {
                     fetch_customer($("#get_ticket_inv").parents('.tab-pane').find('.fetch_customers'), 1);
                 }
-                pagination(data.total, data.per_page, data.current_page, data.to ,get_ticket_invoice);
                 $("#loader").hide();
             }
         })
@@ -273,11 +348,12 @@
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
+                destroy_sale_datatable('#hotel-sale-table');
                 $("#get_hotel_invoice").html(htmlData);
+                refresh_sale_datatable('#hotel-sale-table');
                 if(srch==undefined) {
                     fetch_customer($("#get_hotel_invoice").parents('.tab-pane').find('.fetch_customers'), 2);
                 }
-                pagination(data.total, data.per_page, data.current_page, data.to ,get_ticket_invoice);
                 $("#loader").hide();
             }
         })
@@ -342,11 +418,12 @@
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
+                destroy_sale_datatable('#visa-sale-table');
                 $("#get_visa_invoice").html(htmlData);
+                refresh_sale_datatable('#visa-sale-table');
                 if(srch==undefined) {
                     fetch_customer($("#get_visa_invoice").parents('.tab-pane').find('.fetch_customers'), 3);
                 }
-                pagination(data.total, data.per_page, data.current_page, data.to ,get_ticket_invoice);
                 $("#loader").hide();
             }
         })
@@ -408,11 +485,12 @@
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
+                destroy_sale_datatable('#transport-sale-table');
                 $("#get_transport_invoice").html(htmlData);
+                refresh_sale_datatable('#transport-sale-table');
                 if(srch==undefined) {
                     fetch_customer($("#get_transport_invoice").parents('.tab-pane').find('.fetch_customers'), 4);
                 }
-                pagination(data.total, data.per_page, data.current_page, data.to ,get_ticket_invoice);
                 $("#loader").hide();
             }
         })
@@ -471,11 +549,12 @@
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
+                destroy_sale_datatable('#other-sale-table');
                 $("#get_other_invoice").html(htmlData);
+                refresh_sale_datatable('#other-sale-table');
                 if(srch==undefined) {
                     fetch_customer($("#get_other_invoice").parents('.tab-pane').find('.fetch_customers'), 4);
                 }
-                pagination(data.total, data.per_page, data.current_page, data.to ,get_ticket_invoice);
                 $("#loader").hide();
             }
         })
@@ -742,11 +821,12 @@
                         htmlData+='</td>';
                     htmlData+='</tr>';
                 }
+                destroy_sale_datatable('#tour-sale-table');
                 $("#get_tour_invoice").html(htmlData);
+                refresh_sale_datatable('#tour-sale-table');
                 if(srch==undefined) {
                     fetch_customer($("#get_tour_invoice").parents('.tab-pane').find('.fetch_customers'), 5);
                 }
-                pagination(data.total, data.per_page, data.current_page, data.to ,get_ticket_invoice);
                 $("#loader").hide();
             }
         })

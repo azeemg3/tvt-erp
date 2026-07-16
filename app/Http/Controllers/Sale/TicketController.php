@@ -27,14 +27,18 @@ class TicketController extends Controller
                 DB::raw('sum(tickets.payable) as payable'), DB::raw('sum(tickets.discount) as discount'),
                 DB::raw('sum(tickets.profit) as profit'),
                 DB::raw('count(tickets.id) as totalPax'))->where(['type' => 1])
-            ->whereBetween(DB::raw('DATE(tickets.created_at)'),Account::financial_year())
-            ->when($request->df, function ($query)use ($request){
+            ->when(!$request->filled('inv_no'), function ($query) {
+                $query->whereBetween(DB::raw('DATE(tickets.created_at)'), Account::financial_year());
+            })
+            ->when($request->df && !$request->filled('inv_no'), function ($query) use ($request) {
                 $query->whereBetween(DB::raw('DATE(tickets.created_at)'), [$request->df, $request->dt]);
-            })->when($request->ledger, function ($query)use ($request){
+            })->when($request->ledger, function ($query) use ($request) {
                 $query->where('sale_invoices.ledger', $request->ledger);
+            })->when($request->filled('inv_no'), function ($query) use ($request) {
+                $query->where('sale_invoices.id', $request->inv_no);
             })
             ->groupBy('tickets.SID')
-            ->paginate(15);
+            ->paginate(1000);
         return $result;
 
     }

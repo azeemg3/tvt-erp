@@ -30,14 +30,18 @@ class TransportController extends Controller
                 DB::raw('sum(transports.payable) as payable'),DB::raw('sum(transports.discount) as discount'),
                 DB::raw('sum(transports.profit) as profit'),
                 DB::raw('count(transports.id) as totalPax'))->where(['type'=>4])
-            ->whereBetween(DB::raw('DATE(transports.created_at)'),Account::financial_year())
-            ->when($request->df, function ($query)use ($request){
+            ->when(!$request->filled('inv_no'), function ($query) {
+                $query->whereBetween(DB::raw('DATE(transports.created_at)'), Account::financial_year());
+            })
+            ->when($request->df && !$request->filled('inv_no'), function ($query) use ($request) {
                 $query->whereBetween(DB::raw('DATE(transports.created_at)'), [$request->df, $request->dt]);
-            })->when($request->ledger, function ($query)use ($request){
+            })->when($request->ledger, function ($query) use ($request) {
                 $query->where('sale_invoices.ledger', $request->ledger);
+            })->when($request->filled('inv_no'), function ($query) use ($request) {
+                $query->where('sale_invoices.id', $request->inv_no);
             })
             ->groupBy('transports.SID')
-            ->paginate(15);
+            ->paginate(1000);
         return $result;
     }
 

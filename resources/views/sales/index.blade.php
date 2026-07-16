@@ -97,5 +97,44 @@
         <!-- /.content -->
     </div>
     <!-- /.content-wrapper -->
-    @include('sales.js_func')
 @endsection
+
+@push('scripts')
+@include('sales.js_func')
+<script>
+(function () {
+    function loadScript(src, onload) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.async = false;
+        s.onload = onload;
+        s.onerror = function () {
+            console.error('Failed to load', src);
+        };
+        document.body.appendChild(s);
+    }
+
+    function bootSaleDataTables() {
+        if (typeof window.jQuery === 'undefined') {
+            return setTimeout(bootSaleDataTables, 100);
+        }
+        if (!jQuery.fn.DataTable) {
+            loadScript('{{ URL::asset('public/plugins/datatables/jquery.dataTables.min.js') }}', function () {
+                loadScript('{{ URL::asset('public/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}', bootSaleDataTables);
+            });
+            return;
+        }
+        if (typeof get_ticket_invoice === 'function') {
+            get_ticket_invoice(1);
+        }
+        jQuery(document).on('shown.bs.tab', 'a[data-toggle="pill"]', function () {
+            if (jQuery.fn.dataTable) {
+                jQuery.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        });
+    }
+
+    bootSaleDataTables();
+})();
+</script>
+@endpush
