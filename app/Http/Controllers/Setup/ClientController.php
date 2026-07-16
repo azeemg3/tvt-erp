@@ -12,6 +12,7 @@ use DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
 use PDF;
 
@@ -183,7 +184,7 @@ class ClientController extends Controller
     public function update(Request $request, $id)
     {
         $client = Client::findOrFail($id);
-        $data   = $this->validateClient($request);
+        $data   = $this->validateClient($request, $client->id);
 
         DB::beginTransaction();
         try {
@@ -271,10 +272,17 @@ class ClientController extends Controller
     /**
      * Validation rules shared by store / update.
      */
-    protected function validateClient(Request $request): array
+    protected function validateClient(Request $request, ?int $ignoreClientId = null): array
     {
+        $uniqueName = Rule::unique('clients', 'client_name')
+            ->whereNull('deleted_at');
+
+        if ($ignoreClientId) {
+            $uniqueName->ignore($ignoreClientId);
+        }
+
         $rules = [
-            'client_name'         => 'required|max:255',
+            'client_name'         => ['required', 'max:255', $uniqueName],
             'email'               => 'nullable|email|max:255',
             'mobile'               => 'required|max:50',
             'co_spo'               => 'nullable|max:255',
@@ -290,6 +298,7 @@ class ClientController extends Controller
 
         $messages = [
             'client_name.required'      => 'Client Name is required.',
+            'client_name.unique'        => 'This client name already exists. Please use a different name.',
             'mobile.required'           => 'Client Mobile is required.',
             'category.required'         => 'Category is required.',
             'email.email'               => 'Please enter a valid email address.',
