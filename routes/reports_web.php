@@ -33,6 +33,10 @@ Route::group(['middleware' => ['auth']], function() {
             Route::post('get_simple_sale_register', 'Reports\Sale\SimpleSaleRegisterController@get_data');
             Route::resource('bsp_sale_report', Reports\Sale\BspSaleReportController::class);
             Route::post('get_bsp_sale_report', 'Reports\Sale\BspSaleReportController@get_data');
+            Route::resource('pending_invoice_report', Reports\Sale\PendingInvoiceReportController::class);
+            Route::post('get_pending_invoice_report', 'Reports\Sale\PendingInvoiceReportController@get_data');
+            Route::resource('clearance_invoice_report', Reports\Sale\ClearanceInvoiceReportController::class);
+            Route::post('get_clearance_invoice_report', 'Reports\Sale\ClearanceInvoiceReportController@get_data');
         });
     });
 });

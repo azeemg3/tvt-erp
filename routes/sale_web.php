@@ -37,6 +37,9 @@ Route::group(['middleware' => ['auth']], function() {
 
         Route::resource('acc_other', Sale\OtherSaleController::class);
         Route::post('get_other_inv', 'Sale\OtherSaleController@index');
+        //ticket refund
+        Route::resource('acc_refund', Sale\TicketRefundController::class)->only(['store', 'edit', 'destroy']);
+        Route::post('get_acc_refunds', 'Sale\TicketRefundController@index');
         //fetch customers
         Route::get('fetch_customers/{type}', 'Sale\SaleInvoiceController@fetch_customers');
     });

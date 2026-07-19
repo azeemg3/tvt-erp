@@ -3,7 +3,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\ModuleManager;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use DB;
 use Hash;
 use Illuminate\Support\Arr;
@@ -75,7 +77,8 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::pluck('name')->all();
-        return view('users.create',compact('roles'));
+        $modules = ModuleManager::all();
+        return view('users.create',compact('roles','modules'));
     }
     /**
      * Store a newly created resource in storage.
@@ -89,12 +92,15 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|same:confirm-password',
-            'roles' => 'required'
+            'roles' => 'required|not_in:0',
+            'modules' => 'nullable|array',
+            'modules.*' => 'in:'.implode(',', $this->modulePermissionNames()),
         ]);
         $input = $request->all();
         $input['password'] = Hash::make($input['password']);
         $user = User::create($input);
         $user->assignRole($request->input('roles'));
+        $this->syncModulePermissions($user, (array) $request->input('modules', []));
         return back()->with('success','User created successfully');
     }
     /**
@@ -119,7 +125,13 @@ class UserController extends Controller
         $user = User::find($id);
         $roles = Role::pluck('name','name')->all();
         $userRole = $user->roles->pluck('name','name')->all();
-        return view('users.edit',compact('user','roles','userRole'));
+        $modules = ModuleManager::all();
+        $userModules = $user->getDirectPermissions()
+            ->pluck('name')
+            ->intersect($this->modulePermissionNames())
+            ->values()
+            ->all();
+        return view('users.edit',compact('user','roles','userRole','modules','userModules'));
     }
     /**
      * Update the specified resource in storage.
@@ -134,7 +146,9 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users,email,'.$id,
             'password' => 'same:confirm-password',
-            'roles' => 'required'
+            'roles' => 'required|not_in:0',
+            'modules' => 'nullable|array',
+            'modules.*' => 'in:'.implode(',', $this->modulePermissionNames()),
         ]);
         $input = $request->all();
         if(!empty($input['password'])){
@@ -146,6 +160,7 @@ class UserController extends Controller
         $user->update($input);
         DB::table('model_has_roles')->where('model_id',$id)->delete();
         $user->assignRole($request->input('roles'));
+        $this->syncModulePermissions($user, (array) $request->input('modules', []));
         return redirect()->route('users.index')
             ->with('success','User updated successfully');
     }
@@ -160,5 +175,40 @@ class UserController extends Controller
         User::find($id)->delete();
         return redirect()->route('users.index')
             ->with('success','User deleted successfully');
+    }
+
+    /**
+     * Permission names of all registered business modules (config/modules.php).
+     *
+     * @return string[]
+     */
+    private function modulePermissionNames(): array
+    {
+        return collect(ModuleManager::all())
+            ->pluck('permission')
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Sync the user's DIRECT module permissions with the checked modules.
+     * Checked modules are granted, unchecked ones are revoked; any other
+     * direct permissions the user may have are left untouched.
+     */
+    private function syncModulePermissions(User $user, array $selected): void
+    {
+        foreach ($this->modulePermissionNames() as $permissionName) {
+            // Ensure the permission exists so grants never fail silently.
+            Permission::findOrCreate($permissionName, 'web');
+
+            if (in_array($permissionName, $selected, true)) {
+                $user->givePermissionTo($permissionName);
+            } else {
+                $user->revokePermissionTo($permissionName);
+            }
+        }
+
+        $user->forgetCachedPermissions();
     }
 }

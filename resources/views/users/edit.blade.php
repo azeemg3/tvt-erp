@@ -87,6 +87,31 @@
                                 <!--end-row-->
                                 <div class="row">
                                     <div class="col-xs-12 col-sm-12 col-md-12">
+                                        <div class="form-group">
+                                            <strong>Module Access:</strong>
+                                            <small class="text-muted d-block mb-2">Check the modules this user is allowed to access. Unchecked modules will be unauthorized.</small>
+                                            <div class="row">
+                                                @foreach($modules as $module)
+                                                    <div class="col-xs-12 col-sm-6 col-md-3">
+                                                        <div class="icheck-primary">
+                                                            <input type="checkbox"
+                                                                   id="module_{{ $module['slug'] }}"
+                                                                   name="modules[]"
+                                                                   value="{{ $module['permission'] }}"
+                                                                   @if(is_array(old('modules')) ? in_array($module['permission'], old('modules')) : in_array($module['permission'], $userModules)) checked @endif>
+                                                            <label for="module_{{ $module['slug'] }}">
+                                                                <i class="{{ $module['icon'] }} mr-1"></i> {{ $module['label'] }}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--end-row-->
+                                <div class="row">
+                                    <div class="col-xs-12 col-sm-12 col-md-12">
                                         <button type="submit" class="btn btn-sm btn-success btn-flat float-right">Update</button>
                                     </div>
                                 </div>

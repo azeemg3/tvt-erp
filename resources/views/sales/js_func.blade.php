@@ -987,6 +987,171 @@
             }
         })
     }
+    //================= Ticket Refund (Sale module) =================
+    //net refund calculation
+    function ticket_refund_cal(g) {
+        var form=$(g).closest('form');
+        var amount=Number(form.find('.refund_amount').val())||0;
+        var vc=Number(form.find('.vendor_charges').val())||0;
+        var sc=Number(form.find('.service_charges').val())||0;
+        form.find('.net_refund').val(amount-vc-sc);
+    }
+    //fetch ticket invoice pax for refund
+    function fetch_refund_invoice(SID, callback) {
+        if(!SID || SID==0){ return; }
+        $("#loader").show();
+        $.ajax({
+            url:'{{ url('lms/sale_invoice') }}/'+SID,
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            type:"GET",
+            dataType:"JSON",
+            success:function (data) {
+                var form=$('#ticket-refund-form');
+                if(!data.result || data.result.type!=1){
+                    toastr.error('Ticket Invoice Not Found');
+                    $("#loader").hide();
+                    return;
+                }
+                form.find(".refund_SID").val(data.result.id);
+                form.find(".refund_ledger").val(data.result.ledger);
+                form.find(".refund_inv_no").val(data.result.id);
+                form.find("input[name~='inv_date']").val(data.result.inv_date);
+                var htmlData='<option value="">Select Pax</option>';
+                for(i in data.pax){
+                    htmlData+='<option value="'+data.pax[i].id+'" data-pax="'+data.pax[i].pax_name+'" data-payable="'+data.pax[i].payable_id+'" data-source="'+data.pax[i].source+'" data-airline="'+data.pax[i].airline+'" data-sector="'+data.pax[i].sector+'" data-ticket="'+data.pax[i].ticket_no+'" data-rec="'+data.pax[i].receiveable+'">'+data.pax[i].pax_name+'</option>';
+                }
+                form.find(".refundPaxList").html(htmlData);
+                $("#loader").hide();
+                if(typeof callback === 'function'){
+                    callback();
+                }
+            },error:function () {
+                $("#loader").hide();
+                toastr.error('Invoice Not Found');
+            }
+        })
+    }
+    $(document).on('change', '.refund_inv_no', function () {
+        fetch_refund_invoice($(this).val());
+    });
+    //fill pax details on selection
+    $(document).on('change', '.refundPaxList', function () {
+        var opt=$(this).find('option:selected');
+        var form=$(this).closest('form');
+        form.find("input[name~='rec_id']").val($(this).val()||0);
+        form.find(".refund_pax_name").val(opt.attr('data-pax')||'');
+        form.find(".refund_payable_id").val(opt.attr('data-payable')||'');
+        form.find("select[name~='source']").val(opt.attr('data-source'));
+        form.find("select[name~='airline']").val(opt.attr('data-airline'));
+        form.find("input[name~='sector']").val(opt.attr('data-sector'));
+        form.find("input[name~='refund_sector']").val(opt.attr('data-sector'));
+        form.find("input[name~='ticket_no']").val(opt.attr('data-ticket'));
+        form.find(".refund_amount").val(opt.attr('data-rec'));
+        ticket_refund_cal(form.find('.refund_amount'));
+    });
+    //save ticket refund (posts reversal transactions server side)
+    function save_ticket_refund() {
+        $("#loader").show();
+        $.ajax({
+            url:'{{ route('acc_refund.store') }}',
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            type:"POST",
+            dataType:"JSON",
+            data:$("#ticket-refund-form").serialize(),
+            success:function (data) {
+                toastr.success('Refund Saved & Transactions Posted..');
+                $("#ticket-refund-form input[name~='id']").val(0);
+                $("#ticket-refund-form").find(".btn-success").text('Submit');
+                $("#loader").hide();
+                get_ticket_refunds(1, true);
+            },error:function(ajaxcontent) {
+                var vali=ajaxcontent.responseJSON ? ajaxcontent.responseJSON.errors : null;
+                if(!vali){
+                    toastr.error('Something Wrong with your Request..!');
+                    $("#loader").hide();
+                    return;
+                }
+                $.each(vali, function( index, value ) {
+                    $("#ticket-refund-form [name~='" + index + "']").css('border', '1px solid red');
+                    if(value==1062 || value[0]==1062) {
+                        toastr.error('Refund Already Exists Against this Pax/Ticket');
+                        return false;
+                    }
+                    toastr.error(value);
+                });
+                $("#loader").hide();
+            }
+        })
+    }
+    //fetch ticket refunds list
+    function get_ticket_refunds(page, srch) {
+        $("#loader").show();
+        $.ajax({
+            url:"{{ url('Sale/get_acc_refunds') }}?page="+page,
+            headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+            type:"POST",
+            data:$("#refund-search-form").serialize(),
+            dataType:"JSON",
+            success:function (data) {
+                htmlData='';
+                for(i in data.data){
+                    htmlData+='<tr id="refund-'+data.data[i].id+'">';
+                    htmlData+='<td>'+(Number(i)+1)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].SID)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].pax_name)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].Trans_Acc_Name)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].ticket_no)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].refund_date)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].refund_amount, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].vendor_charges, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].service_charges, true)+'</td>';
+                    htmlData+='<td>'+display_or_na(data.data[i].net_refund, true)+'</td>';
+                    htmlData+='<td>';
+                    htmlData+='<a class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit_ticket_refund('+data.data[i].id+', \''+data.data[i].SID+'\')"><i class="fa fa-edit"></i> </a>';
+                    htmlData+=' <a class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\'refund-'+data.data[i].id+'\', \'{{ url('Sale/acc_refund') }}/'+data.data[i].id+'\')"><i class="fa fa-trash"></i> </a>';
+                    htmlData+='</td>';
+                    htmlData+='</tr>';
+                }
+                destroy_sale_datatable('#refund-sale-table');
+                $("#get_ticket_refunds").html(htmlData);
+                refresh_sale_datatable('#refund-sale-table');
+                if(srch==undefined) {
+                    fetch_customer($("#get_ticket_refunds").parents('.tab-pane').find('.fetch_customers'), 1);
+                }
+                $("#loader").hide();
+            }
+        })
+    }
+    //edit ticket refund
+    function edit_ticket_refund(id, SID) {
+        $("#ticket-refund-modal").modal();
+        $('#ticket-refund-form')[0].reset();
+        fetch_refund_invoice(SID, function () {
+            $("#loader").show();
+            $.ajax({
+                url:'{{ url('Sale/acc_refund') }}/'+id+'/edit',
+                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                type:"GET",
+                dataType:"JSON",
+                success:function (data) {
+                    var form=$('#ticket-refund-form');
+                    for (i=0; i<Object.keys(data).length; i++){
+                        var key=Object.keys(data)[i];
+                        form.find("input[name~='"+key+"']").val(Object.values(data)[i]);
+                        form.find("select[name~='"+key+"']").val(Object.values(data)[i]);
+                        form.find("textarea[name~='"+key+"']").val(Object.values(data)[i]);
+                    }
+                    form.find(".refund_SID").val(data.SID);
+                    form.find(".refund_ledger").val(data.client_id);
+                    form.find(".refund_payable_id").val(data.vendor_id);
+                    form.find(".refund_pax_name").val(data.pax_name);
+                    form.find(".refundPaxList").val(data.rec_id);
+                    form.find(".btn-success").text('Update');
+                    $("#loader").hide();
+                }
+            })
+        });
+    }
     //sale invoice auto calculaiton
     function cal_tax(g) {
         var sp_yi=$(g).closest('form').find('.sp_yi').val();

@@ -219,9 +219,9 @@
                                 <div class="report-footer report-show">
                                     <table>
                                         <tr>
-                                            <td style="text-align: left;">Powered By: {{ $company->powered_by }}</td>
-                                            <td style="text-align: center;">Website: {{ $company->website }}</td>
-                                            <td style="text-align: right;">Contact No: {{ $company->contact_no }}</td>
+                                            <td style="text-align: left;">Copyright &copy; {{ date('Y') }} Tour Vision Travel Pvt Ltd.</td>
+                                            <td style="text-align: center;">Website: www.toursvision.com</td>
+                                            <td style="text-align: right;">All rights reserved.</td>
                                         </tr>
                                     </table>
                                 </div>

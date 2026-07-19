@@ -5,6 +5,7 @@ $accounts=['root_accounts', 'dashboard', 'head_accounts', 'subhead_accounts',
     'financial_year','service_providors'];
 $account_reports=['ledger_report','trail_balance','account_day_book','balance_sheet','income_statement'];
 $sale_reports=['simple_sale_register','bsp_sale_report'];
+$invoice_reports=['pending_invoice_report','clearance_invoice_report'];
 $sale=['Sale'];
 $setup_account=['clients','vendors','general-accounts'];
 ?>
@@ -196,7 +197,8 @@ $setup_account=['clients','vendors','general-accounts'];
 @endcan
 @if(Auth::user()->can('account_reports_view') || Auth::user()->can('sale_invoices_view'))
     <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $account_reports)) echo 'menu-open';
-    elseif(Request::segment(2)=='sale') echo 'menu-open'; elseif(in_array(Request::segment(3), $sale_reports)) echo 'menu-open';?>">
+    elseif(Request::segment(2)=='sale') echo 'menu-open'; elseif(in_array(Request::segment(3), $sale_reports)) echo 'menu-open';
+    elseif(in_array(Request::segment(3), $invoice_reports)) echo 'menu-open';?>">
         <a href="#" class="nav-link">
             <i class="nav-icon fas fa-chart-area"></i>
             <p>
@@ -249,7 +251,7 @@ $setup_account=['clients','vendors','general-accounts'];
             @endcan
             @can('sale_invoices_view')
                 <li class="nav-item has-treeview <?php if(Request::segment(2)=='sale' || in_array(Request::segment(3), $sale_reports)) echo 'menu-open'; ?>">
-                    <a href="#" class="nav-link {{ (request()->is('reports/sale/*')) ? 'active' : '' }}">
+                    <a href="#" class="nav-link {{ (request()->is('reports/sale/simple_sale_register*') || request()->is('reports/sale/bsp_sale_report*')) ? 'active' : '' }}">
                         <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                         <p>Sale Report
                             <i class="nav-icon right fas fa-angle-left"></i>
@@ -266,6 +268,28 @@ $setup_account=['clients','vendors','general-accounts'];
                             <a href="{{ route('bsp_sale_report.index') }}" class="nav-link {{ (request()->is('reports/sale/bsp_sale_report*')) ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                                 <p>Bsp Sale Report</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $invoice_reports)) echo 'menu-open'; ?>">
+                    <a href="#" class="nav-link {{ (request()->is('reports/sale/pending_invoice_report*') || request()->is('reports/sale/clearance_invoice_report*')) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                        <p>Invoice Reports
+                            <i class="nav-icon right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('pending_invoice_report.index') }}" class="nav-link {{ (request()->is('reports/sale/pending_invoice_report*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Pending Invoice Report</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('clearance_invoice_report.index') }}" class="nav-link {{ (request()->is('reports/sale/clearance_invoice_report*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Clearance Invoice Report</p>
                             </a>
                         </li>
                     </ul>

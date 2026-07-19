@@ -64,7 +64,7 @@
                                                     @endcan
 
                                                     <li class="nav-item">
-                                                        <a class="nav-link" id="custom-tabs-one-settings-tab" data-toggle="pill" href="#refund" role="tab" aria-controls="custom-tabs-one-settings" aria-selected="false">
+                                                        <a class="nav-link" onclick="get_ticket_refunds(1)" id="custom-tabs-one-settings-tab" data-toggle="pill" href="#refund" role="tab" aria-controls="custom-tabs-one-settings" aria-selected="false">
                                                             <i class="fa fa-undo-alt"></i> Refund</a>
                                                     </li>
                                                     <li class="nav-item">
@@ -81,6 +81,7 @@
                                                 @include('sales.tabs.transport')
                                                 @include('sales.tabs.tour')
                                                 @include('sales.tabs.other')
+                                                @include('sales.tabs.refund')
                                             </div>
                                         </div>
                                         <!-- /.card -->

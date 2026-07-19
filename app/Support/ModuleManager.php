@@ -51,8 +51,12 @@ class ModuleManager
     /**
      * Whether the given user may access the module.
      *
-     * Admins can access everything; otherwise the module's `permission`
-     * gate must be satisfied.
+     * Admins can access everything. When the user has been given direct
+     * (per-user) module permissions — via the module checkboxes on the user
+     * form — that set is treated as a strict allowlist: only the checked
+     * modules are authorized, regardless of what their role grants. Users
+     * without any direct module permission fall back to the legacy
+     * role-based permission check.
      */
     public static function canAccess(string $slug, $user = null): bool
     {
@@ -78,7 +82,31 @@ class ModuleManager
             return true;
         }
 
+        if (method_exists($user, 'hasDirectPermission')) {
+            $directModulePermissions = static::directModulePermissions($user);
+
+            if (! empty($directModulePermissions)) {
+                return in_array($permission, $directModulePermissions, true);
+            }
+        }
+
         return $user->can($permission);
+    }
+
+    /**
+     * Module permissions assigned DIRECTLY to the user (not via roles).
+     *
+     * @return string[]
+     */
+    protected static function directModulePermissions($user): array
+    {
+        $modulePermissions = array_filter(array_column(static::all(), 'permission'));
+
+        return $user->getDirectPermissions()
+            ->pluck('name')
+            ->intersect($modulePermissions)
+            ->values()
+            ->all();
     }
 
     /**
