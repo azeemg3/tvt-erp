@@ -20,6 +20,17 @@
                             <input type="text" class="form-control form-control-sm refund_inv_no" placeholder="Invoice No" inputmode="numeric">
                         </div>
                         <!--col-->
+                        <div class="col-md-10 refund-client-info d-none">
+                            <div class="callout callout-info py-2 mb-0">
+                                <div class="row">
+                                    <div class="col-md-3"><strong>Client:</strong> <span class="refund_client_name">-</span></div>
+                                    <div class="col-md-3"><strong>Phone:</strong> <span class="refund_client_phone">-</span></div>
+                                    <div class="col-md-3"><strong>Email:</strong> <span class="refund_client_email">-</span></div>
+                                    <div class="col-md-3"><strong>Remaining Balance:</strong> <span class="refund_inv_balance text-danger font-weight-bold">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--col-->
                         <div class="form-group col-md-2">
                             <label>Select Pax <span class="text-danger">*</span></label>
                             <select class="form-control form-control-sm refundPaxList">

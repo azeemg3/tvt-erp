@@ -4,8 +4,12 @@ namespace App\Http\Controllers\Sale;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Client;
 use App\Models\Lms\Refund;
+use App\Models\SaleInvoice;
+use App\Models\Ticket;
 use App\Models\Accounts\Transaction;
+use App\Models\Accounts\TransactionAccount;
 use App\Helpers\Account;
 use DB;
 use Auth;
@@ -185,6 +189,46 @@ class TicketRefundController extends Controller
             $tdata['amount'] = $serviceCharges;
             Transaction::create($tdata);
         }
+    }
+
+    /**
+     * Fetch ticket invoice with pax list and client details for refund form.
+     */
+    public function fetchInvoice($id)
+    {
+        $result = SaleInvoice::find($id);
+        if (!$result || (int) $result->type !== 1) {
+            return response()->json(['success' => false, 'message' => 'Ticket Invoice Not Found'], 404);
+        }
+
+        $pax = Ticket::where('SID', $id)->get();
+        $clientAccount = TransactionAccount::find($result->ledger);
+        $client = Client::where('account_id', $result->ledger)->first();
+
+        $billAmount = (float) Ticket::where('SID', $id)->sum('receiveable');
+        $paidAmount = (float) Transaction::where('SID', $id)
+            ->where('trans_acc_id', $result->ledger)
+            ->where('vt', 1)
+            ->sum('amount');
+        $remainingBalance = round($billAmount - $paidAmount, 2);
+
+        return response()->json([
+            'success' => true,
+            'result' => $result,
+            'pax' => $pax,
+            'client' => [
+                'name' => ($client ? $client->client_name : null) ?: ($clientAccount->Trans_Acc_Name ?? ''),
+                'email' => $client ? ($client->email ?? '') : '',
+                'phone' => $client ? ($client->mobile ?? '') : '',
+                'credit_limit' => $client ? $client->credit_limit : null,
+                'address' => $client ? ($client->address ?? '') : '',
+            ],
+            'invoice_balance' => [
+                'bill_amount' => round($billAmount, 2),
+                'paid_amount' => round($paidAmount, 2),
+                'remaining_balance' => $remainingBalance,
+            ],
+        ]);
     }
 
     /**

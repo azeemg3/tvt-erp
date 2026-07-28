@@ -40,6 +40,7 @@ Route::group(['middleware' => ['auth']], function() {
         //ticket refund
         Route::resource('acc_refund', Sale\TicketRefundController::class)->only(['store', 'edit', 'destroy']);
         Route::post('get_acc_refunds', 'Sale\TicketRefundController@index');
+        Route::get('fetch_refund_invoice/{id}', 'Sale\TicketRefundController@fetchInvoice');
         //fetch customers
         Route::get('fetch_customers/{type}', 'Sale\SaleInvoiceController@fetch_customers');
     });
