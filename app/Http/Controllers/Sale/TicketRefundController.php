@@ -41,14 +41,8 @@ class TicketRefundController extends Controller
     }
 
     /**
-     * Store (create or update) a ticket refund and post the reversal
-     * transactions against the original sale.
-     *
-     * Accounting entries (vt=9 Ref), all under one trans_code:
-     *  Dr Vendor           refund_amount - vendor_charges  (vendor owes us back)
-     *  Cr Client ledger    net_refund                      (credit note to client)
-     *  Cr Refund SC income service_charges                 (our income)
-     * where net_refund = refund_amount - vendor_charges - service_charges.
+     * Store (create or update) a ticket refund and post inverse transactions
+     * mirroring the original ticket sale entries (vt=4) in reverse (vt=9).
      */
     public function store(Request $request)
     {
@@ -80,8 +74,19 @@ class TicketRefundController extends Controller
         $refundAmount = (float) $request->refund_amount;
         $vendorCharges = (float) ($request->vendor_charges ?: 0);
         $serviceCharges = (float) ($request->service_charges ?: 0);
+        $payable = (float) ($request->payable ?: 0);
+        $comRec = (float) ($request->com_rec ?: 0);
+        $comPaid = (float) ($request->com_paid ?: 0);
+        $whAir = (float) ($request->wh_air ?: 0);
+        $pstPaid = (float) ($request->pst_paid ?: 0);
+        $psf = (float) ($request->psf ?: 0);
+        $discount = (float) ($request->discount ?: 0);
+        $whClient = (float) ($request->wh_client ?: 0);
+        $agentAmount = (float) ($request->agent_amount ?: 0);
+        $totalTaxes = (float) ($request->total_taxes ?: 0);
+        $vendorRecovery = max(0, $payable - $vendorCharges);
         $netRefund = $refundAmount - $vendorCharges - $serviceCharges;
-        $vendorRecovery = $refundAmount - $vendorCharges;
+
         if ($netRefund < 0) {
             return response()->json([
                 'errors' => ['refund_amount' => ['Charges cannot exceed Refund Amount']],
@@ -105,6 +110,17 @@ class TicketRefundController extends Controller
             'vendor_charges' => $vendorCharges,
             'service_charges' => $serviceCharges,
             'net_refund' => $netRefund,
+            'payable' => $payable,
+            'refund_taxes' => $totalTaxes,
+            'com_rec' => $comRec,
+            'com_paid' => $comPaid,
+            'wh_air' => $whAir,
+            'pst_paid' => $pstPaid,
+            'psf' => $psf,
+            'discount' => $discount,
+            'wh_client' => $whClient,
+            'agent_amount' => $agentAmount ?: null,
+            'agent_id' => $request->agent_id ?: null,
             'vendor_id' => $request->payable_id,
             'client_id' => $request->ledger,
             'remarks' => $request->remarks ?: '',
@@ -121,6 +137,11 @@ class TicketRefundController extends Controller
             'narration' => 'Ticket Refund Inv#'.$request->SID.' ('.$request->pax_name.') '.$request->remarks,
         ];
 
+        $amounts = compact(
+            'vendorRecovery', 'netRefund', 'serviceCharges', 'comRec', 'comPaid',
+            'whAir', 'pstPaid', 'psf', 'discount', 'whClient', 'agentAmount'
+        );
+
         $id = $request->id;
         DB::beginTransaction();
         try {
@@ -129,7 +150,14 @@ class TicketRefundController extends Controller
                 $data['trans_code'] = Account::trans_code();
                 $tdata['Created_By'] = Auth::user()->id;
                 Refund::create($data);
-                $this->post_refund_transactions($tdata, $data['trans_code'], $request->payable_id, $request->ledger, $vendorRecovery, $netRefund, $serviceCharges);
+                $this->post_refund_transactions(
+                    $tdata,
+                    $data['trans_code'],
+                    $request->payable_id,
+                    $request->ledger,
+                    $request->agent_id,
+                    $amounts
+                );
             } else {
                 $refund = Refund::findOrFail($id);
                 $trans_code = $refund->trans_code;
@@ -139,10 +167,16 @@ class TicketRefundController extends Controller
                 }
                 $data['updated_by'] = Auth::user()->id;
                 $refund->update($data);
-                // revert old posting then re-post with updated figures
                 Transaction::where('trans_code', $trans_code)->delete();
                 $tdata['Created_By'] = Auth::user()->id;
-                $this->post_refund_transactions($tdata, $trans_code, $request->payable_id, $request->ledger, $vendorRecovery, $netRefund, $serviceCharges);
+                $this->post_refund_transactions(
+                    $tdata,
+                    $trans_code,
+                    $request->payable_id,
+                    $request->ledger,
+                    $request->agent_id,
+                    $amounts
+                );
             }
             DB::commit();
         } catch (\Illuminate\Database\QueryException $e) {
@@ -163,30 +197,102 @@ class TicketRefundController extends Controller
     }
 
     /**
-     * Create the balanced reversal entries for a ticket refund.
+     * Post inverse of ticket sale transactions for a refund.
      */
-    private function post_refund_transactions($tdata, $trans_code, $vendor_acc, $client_acc, $vendorRecovery, $netRefund, $serviceCharges)
+    private function post_refund_transactions($tdata, $trans_code, $vendor_acc, $client_acc, $agent_id, $amounts)
     {
         $tdata['trans_code'] = $trans_code;
-        //dr to vendor (recover from airline/vendor)
-        if ($vendorRecovery > 0) {
+
+        // Dr vendor (recover from airline/vendor) — inverse of Cr vendor on sale
+        if ($amounts['vendorRecovery'] > 0) {
             $tdata['dr_cr'] = 1;
             $tdata['trans_acc_id'] = $vendor_acc;
-            $tdata['amount'] = $vendorRecovery;
+            $tdata['amount'] = $amounts['vendorRecovery'];
             Transaction::create($tdata);
         }
-        //cr to client (reduce receivable / refund payable to client)
-        if ($netRefund > 0) {
+
+        // Cr client (credit note) — inverse of Dr client on sale
+        if ($amounts['netRefund'] > 0) {
             $tdata['dr_cr'] = 2;
             $tdata['trans_acc_id'] = $client_acc;
-            $tdata['amount'] = $netRefund;
+            $tdata['amount'] = $amounts['netRefund'];
             Transaction::create($tdata);
         }
-        //cr to ticket refund service charges income
-        if ($serviceCharges > 0) {
+
+        // Dr commission received — inverse of Cr com_rec on sale
+        if ($amounts['comRec'] > 0) {
+            $tdata['dr_cr'] = 1;
+            $tdata['trans_acc_id'] = Config::get('constant.ticket_com_rev');
+            $tdata['amount'] = $amounts['comRec'];
+            Transaction::create($tdata);
+        }
+
+        // Cr commission paid — inverse of Dr com_paid on sale
+        if ($amounts['comPaid'] > 0) {
+            $tdata['dr_cr'] = 2;
+            $tdata['trans_acc_id'] = Config::get('constant.ticket_com_paid');
+            $tdata['amount'] = $amounts['comPaid'];
+            Transaction::create($tdata);
+        }
+
+        // Cr WH air — inverse of Dr wh_air on sale
+        if ($amounts['whAir'] > 0) {
+            $tdata['dr_cr'] = 2;
+            $tdata['trans_acc_id'] = Config::get('constant.wh_tax');
+            $tdata['amount'] = $amounts['whAir'];
+            Transaction::create($tdata);
+        }
+
+        // Cr PST paid — inverse of Dr pst_paid on sale
+        if ($amounts['pstPaid'] > 0) {
+            $tdata['dr_cr'] = 2;
+            $tdata['trans_acc_id'] = Config::get('constant.pst');
+            $tdata['amount'] = $amounts['pstPaid'];
+            Transaction::create($tdata);
+        }
+
+        // Dr PSF — inverse of Cr psf on sale
+        if ($amounts['psf'] > 0) {
+            $tdata['dr_cr'] = 1;
+            $tdata['trans_acc_id'] = Config::get('constant.psf_code');
+            $tdata['amount'] = $amounts['psf'];
+            Transaction::create($tdata);
+        }
+
+        // Cr discount allowed — inverse of Dr discount on sale
+        if ($amounts['discount'] > 0) {
+            $tdata['dr_cr'] = 2;
+            $tdata['trans_acc_id'] = Config::get('constant.dis_allowed');
+            $tdata['amount'] = $amounts['discount'];
+            Transaction::create($tdata);
+        }
+
+        // Dr WH client — inverse of Cr wh_client on sale
+        if ($amounts['whClient'] > 0) {
+            $tdata['dr_cr'] = 1;
+            $tdata['trans_acc_id'] = Config::get('constant.wh_tax');
+            $tdata['amount'] = $amounts['whClient'];
+            Transaction::create($tdata);
+        }
+
+        // Dr agent + Cr agent commission expense — inverse of sale agent entries
+        if ($agent_id && $amounts['agentAmount'] > 0) {
+            $tdata['dr_cr'] = 1;
+            $tdata['trans_acc_id'] = $agent_id;
+            $tdata['amount'] = $amounts['agentAmount'];
+            Transaction::create($tdata);
+
+            $tdata['dr_cr'] = 2;
+            $tdata['trans_acc_id'] = Config::get('constant.agent_com_exp');
+            $tdata['amount'] = $amounts['agentAmount'];
+            Transaction::create($tdata);
+        }
+
+        // Cr refund service charges income
+        if ($amounts['serviceCharges'] > 0) {
             $tdata['dr_cr'] = 2;
             $tdata['trans_acc_id'] = Config::get('constant.ticket_refund_sc');
-            $tdata['amount'] = $serviceCharges;
+            $tdata['amount'] = $amounts['serviceCharges'];
             Transaction::create($tdata);
         }
     }

@@ -31,6 +31,12 @@ Route::group(['middleware' => ['auth']], function() {
         Route::prefix('sale')->group(function (){
             Route::resource('simple_sale_register', Reports\Sale\SimpleSaleRegisterController::class);
             Route::post('get_simple_sale_register', 'Reports\Sale\SimpleSaleRegisterController@get_data');
+            Route::resource('sale_reg_payable_only', Reports\Sale\SaleRegPayableOnlyController::class);
+            Route::post('get_sale_reg_payable_only', 'Reports\Sale\SaleRegPayableOnlyController@get_data');
+            Route::resource('simple_sr_modewise', Reports\Sale\SimpleSrModewiseController::class);
+            Route::post('get_simple_sr_modewise', 'Reports\Sale\SimpleSrModewiseController@get_data');
+            Route::resource('client_wise_psf', Reports\Sale\ClientWisePsfController::class);
+            Route::post('get_client_wise_psf', 'Reports\Sale\ClientWisePsfController@get_data');
             Route::resource('bsp_sale_report', Reports\Sale\BspSaleReportController::class);
             Route::post('get_bsp_sale_report', 'Reports\Sale\BspSaleReportController@get_data');
             Route::resource('pending_invoice_report', Reports\Sale\PendingInvoiceReportController::class);

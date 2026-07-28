@@ -4,7 +4,7 @@ $accounts=['root_accounts', 'dashboard', 'head_accounts', 'subhead_accounts',
     'trans_accounts', 'payment_vouchers', 'receipt_vouchers','journal_vouchers','ledger',
     'financial_year','service_providors'];
 $account_reports=['ledger_report','trail_balance','account_day_book','balance_sheet','income_statement'];
-$sale_reports=['simple_sale_register','bsp_sale_report'];
+$sale_reports=['simple_sale_register','sale_reg_payable_only','simple_sr_modewise','client_wise_psf','bsp_sale_report'];
 $invoice_reports=['pending_invoice_report','clearance_invoice_report'];
 $sale=['Sale'];
 $setup_account=['clients','vendors','general-accounts'];
@@ -251,7 +251,7 @@ $setup_account=['clients','vendors','general-accounts'];
             @endcan
             @can('sale_invoices_view')
                 <li class="nav-item has-treeview <?php if(Request::segment(2)=='sale' || in_array(Request::segment(3), $sale_reports)) echo 'menu-open'; ?>">
-                    <a href="#" class="nav-link {{ (request()->is('reports/sale/simple_sale_register*') || request()->is('reports/sale/bsp_sale_report*')) ? 'active' : '' }}">
+                    <a href="#" class="nav-link {{ (request()->is('reports/sale/simple_sale_register*') || request()->is('reports/sale/sale_reg_payable_only*') || request()->is('reports/sale/simple_sr_modewise*') || request()->is('reports/sale/client_wise_psf*') || request()->is('reports/sale/bsp_sale_report*')) ? 'active' : '' }}">
                         <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                         <p>Sale Report
                             <i class="nav-icon right fas fa-angle-left"></i>
@@ -262,6 +262,24 @@ $setup_account=['clients','vendors','general-accounts'];
                             <a href="{{ route('simple_sale_register.index') }}" class="nav-link {{ (request()->is('reports/sale/simple_sale_register*')) ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                                 <p>Simple Sale Register</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('sale_reg_payable_only.index') }}" class="nav-link {{ (request()->is('reports/sale/sale_reg_payable_only*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Sale Register Payable Only</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('simple_sr_modewise.index') }}" class="nav-link {{ (request()->is('reports/sale/simple_sr_modewise*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Simple Sale Register Modewise</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('client_wise_psf.index') }}" class="nav-link {{ (request()->is('reports/sale/client_wise_psf*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Client Wise PSF</p>
                             </a>
                         </li>
                         <li class="nav-item">

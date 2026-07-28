@@ -122,6 +122,7 @@
         if(mID === 'ticket-refund-modal'){
             clear_refund_client_info();
             $('#ticket-refund-form .refundPaxList').html('<option value="">Select Pax</option>');
+            $("#ticket-refund-form input[name~='refund_date']").val(today_date());
         }
         $(".select2").select2();
         $(".get_ticket_invDetails").html('');
@@ -992,13 +993,111 @@
         })
     }
     //================= Ticket Refund (Sale module) =================
-    //net refund calculation
+    function refund_pax_option_html(pax) {
+        var attrs = 'data-pax="'+(pax.pax_name||'')+'"'
+            +' data-payable="'+(pax.payable_id||'')+'"'
+            +' data-source="'+(pax.source||'')+'"'
+            +' data-airline="'+(pax.airline||'')+'"'
+            +' data-sector="'+(pax.sector||'')+'"'
+            +' data-ticket="'+(pax.ticket_no||'')+'"'
+            +' data-rec="'+(pax.receiveable||0)+'"'
+            +' data-basic="'+(pax.basic_fare||0)+'"'
+            +' data-sp-yi="'+(pax.sp_yi_tax||0)+'"'
+            +' data-rg="'+(pax.rg_cvt_tax||0)+'"'
+            +' data-yq="'+(pax.yq_tax||0)+'"'
+            +' data-ced="'+(pax.ced_tax||0)+'"'
+            +' data-pb="'+(pax.pb_adv_tax||0)+'"'
+            +' data-xz="'+(pax.xz_tax||0)+'"'
+            +' data-yd="'+(pax.yd_tax||0)+'"'
+            +' data-xt="'+(pax.xt_ur_tax||0)+'"'
+            +' data-other="'+(pax.other_taxes||0)+'"'
+            +' data-taxes="'+(pax.total_taxes||0)+'"'
+            +' data-com-rec="'+(pax.com_rec||0)+'"'
+            +' data-com-paid="'+(pax.com_paid||0)+'"'
+            +' data-wh-air="'+(pax.wh_air||0)+'"'
+            +' data-pst="'+(pax.pst_paid||0)+'"'
+            +' data-psf="'+(pax.psf||0)+'"'
+            +' data-disc="'+(pax.discount||0)+'"'
+            +' data-wh-client="'+(pax.wh_client||0)+'"'
+            +' data-agent="'+(pax.agent_amount||0)+'"'
+            +' data-agent-id="'+(pax.agent_id||'')+'"'
+            +' data-payable-amt="'+(pax.payable||0)+'"'
+            +' data-currency="'+(pax.currency||'')+'"'
+            +' data-rate="'+(pax.currency_rate||1)+'"';
+        return '<option value="'+pax.id+'" '+attrs+'>'+pax.pax_name+'</option>';
+    }
+    function populate_refund_from_pax(opt) {
+        var form = opt.closest('form');
+        form.find("input[name~='rec_id']").val(opt.val()||0);
+        form.find(".refund_pax_name").val(opt.attr('data-pax')||'');
+        form.find(".refund_payable_id").val(opt.attr('data-payable')||'');
+        form.find("select[name~='source']").val(opt.attr('data-source'));
+        form.find("select[name~='airline']").val(opt.attr('data-airline'));
+        form.find("input[name~='sector']").val(opt.attr('data-sector'));
+        form.find("input[name~='refund_sector']").val(opt.attr('data-sector'));
+        form.find("input[name~='ticket_no']").val(opt.attr('data-ticket'));
+        form.find(".bf").val(opt.attr('data-basic')||0);
+        form.find(".sp_yi").val(opt.attr('data-sp-yi')||0);
+        form.find(".rg_cvt").val(opt.attr('data-rg')||0);
+        form.find(".yq").val(opt.attr('data-yq')||0);
+        form.find(".ced").val(opt.attr('data-ced')||0);
+        form.find(".pb_adv").val(opt.attr('data-pb')||0);
+        form.find(".xz").val(opt.attr('data-xz')||0);
+        form.find(".yd").val(opt.attr('data-yd')||0);
+        form.find(".xt").val(opt.attr('data-xt')||0);
+        form.find(".other_tax").val(opt.attr('data-other')||0);
+        form.find(".total_taxes").val(opt.attr('data-taxes')||0);
+        form.find(".com_rec").val(opt.attr('data-com-rec')||0);
+        form.find(".com_paid").val(opt.attr('data-com-paid')||0);
+        form.find(".wh_air").val(opt.attr('data-wh-air')||0);
+        form.find(".pst_paid").val(opt.attr('data-pst')||0);
+        form.find(".psf").val(opt.attr('data-psf')||0);
+        form.find(".disc").val(opt.attr('data-disc')||0);
+        form.find(".wh_client").val(opt.attr('data-wh-client')||0);
+        form.find(".agent_amount_f").val(opt.attr('data-agent')||0);
+        form.find(".agent_f").val(opt.attr('data-agent-id')||'');
+        form.find("select[name~='currency']").val(opt.attr('data-currency'));
+        form.find(".currency_rate").val(opt.attr('data-rate')||1);
+        form.find(".vendor_charges").val(0);
+        form.find(".service_charges").val(0);
+        ticket_refund_cal(form.find('.bf'));
+    }
+    function refund_cal_tax(g) {
+        var form=$(g).closest('form');
+        var sp_yi=form.find('.sp_yi').val();
+        var rg=form.find('.rg_cvt').val();
+        var yq=form.find('.yq').val();
+        var ced=form.find('.ced').val();
+        var pb_adv=form.find('.pb_adv').val();
+        var xz=form.find('.xz').val();
+        var yd=form.find('.yd').val();
+        var xt=form.find('.xt').val();
+        var other_taxes=form.find('.other_tax').val();
+        var total_taxes=Number(sp_yi)+Number(rg)+Number(yq)+Number(ced)+Number(pb_adv)+Number(xz)+Number(yd)+Number(xt)+Number(other_taxes);
+        form.find(".total_taxes").val(total_taxes);
+        ticket_refund_cal(g);
+    }
+    //net refund calculation (inverse mirror of ticket_cal)
     function ticket_refund_cal(g) {
         var form=$(g).closest('form');
-        var amount=Number(form.find('.refund_amount').val())||0;
-        var vc=Number(form.find('.vendor_charges').val())||0;
-        var sc=Number(form.find('.service_charges').val())||0;
-        form.find('.net_refund').val(amount-vc-sc);
+        var fare=Number(form.find(".bf").val())||0;
+        var taxes=Number(form.find(".total_taxes").val())||0;
+        var com_rec=Number(form.find(".com_rec").val())||0;
+        var com_paid=Number(form.find(".com_paid").val())||0;
+        var wh_air=Number(form.find(".wh_air").val())||0;
+        var pst_paid=Number(form.find(".pst_paid").val())||0;
+        var psf=Number(form.find(".psf").val())||0;
+        var discount=Number(form.find(".disc").val())||0;
+        var wh_client=Number(form.find(".wh_client").val())||0;
+        var vendor_charges=Number(form.find(".vendor_charges").val())||0;
+        var service_charges=Number(form.find(".service_charges").val())||0;
+        var pb=Number(fare)+Number(taxes)-Number(com_rec)+Number(com_paid)+Number(wh_air)+Number(pst_paid);
+        var rec=Number(fare)+Number(taxes)+Number(psf)-Number(discount)+Number(wh_client);
+        var net=rec-vendor_charges-service_charges;
+        var vendor_recovery=pb-vendor_charges;
+        form.find('.payable').val(pb);
+        form.find('.refund_amount').val(rec);
+        form.find('.net_refund').val(net);
     }
     function clear_refund_client_info() {
         var form=$('#ticket-refund-form');
@@ -1046,7 +1145,7 @@
                 show_refund_client_info(data);
                 var htmlData='<option value="">Select Pax</option>';
                 for(i in data.pax){
-                    htmlData+='<option value="'+data.pax[i].id+'" data-pax="'+data.pax[i].pax_name+'" data-payable="'+data.pax[i].payable_id+'" data-source="'+data.pax[i].source+'" data-airline="'+data.pax[i].airline+'" data-sector="'+data.pax[i].sector+'" data-ticket="'+data.pax[i].ticket_no+'" data-rec="'+data.pax[i].receiveable+'">'+data.pax[i].pax_name+'</option>';
+                    htmlData+=refund_pax_option_html(data.pax[i]);
                 }
                 form.find(".refundPaxList").html(htmlData);
                 $("#loader").hide();
@@ -1066,17 +1165,8 @@
     //fill pax details on selection
     $(document).on('change', '.refundPaxList', function () {
         var opt=$(this).find('option:selected');
-        var form=$(this).closest('form');
-        form.find("input[name~='rec_id']").val($(this).val()||0);
-        form.find(".refund_pax_name").val(opt.attr('data-pax')||'');
-        form.find(".refund_payable_id").val(opt.attr('data-payable')||'');
-        form.find("select[name~='source']").val(opt.attr('data-source'));
-        form.find("select[name~='airline']").val(opt.attr('data-airline'));
-        form.find("input[name~='sector']").val(opt.attr('data-sector'));
-        form.find("input[name~='refund_sector']").val(opt.attr('data-sector'));
-        form.find("input[name~='ticket_no']").val(opt.attr('data-ticket'));
-        form.find(".refund_amount").val(opt.attr('data-rec'));
-        ticket_refund_cal(form.find('.refund_amount'));
+        if(!opt.val()) return;
+        populate_refund_from_pax(opt);
     });
     //save ticket refund (posts reversal transactions server side)
     function save_ticket_refund() {
@@ -1089,6 +1179,7 @@
             data:$("#ticket-refund-form").serialize(),
             success:function (data) {
                 toastr.success('Refund Saved & Transactions Posted..');
+                $("#ticket-refund-modal").modal('hide');
                 $("#ticket-refund-form input[name~='id']").val(0);
                 $("#ticket-refund-form").find(".btn-success").text('Submit');
                 $("#loader").hide();
@@ -1171,11 +1262,35 @@
                         form.find("textarea[name~='"+key+"']").val(Object.values(data)[i]);
                     }
                     form.find(".refund_SID").val(data.SID);
+                    form.find(".refund_inv_no").val(data.SID);
                     form.find(".refund_ledger").val(data.client_id);
                     form.find(".refund_payable_id").val(data.vendor_id);
                     form.find(".refund_pax_name").val(data.pax_name);
                     form.find(".refundPaxList").val(data.rec_id);
+                    var selectedPax=form.find(".refundPaxList option:selected");
+                    if(selectedPax.length && selectedPax.val()){
+                        populate_refund_from_pax(selectedPax);
+                    }
+                    form.find("input[name~='id']").val(data.id);
+                    form.find("input[name~='refund_date']").val(data.refund_date);
+                    form.find("input[name~='refund_type']").val(data.refund_type);
+                    form.find(".vendor_charges").val(data.vendor_charges||0);
+                    form.find(".service_charges").val(data.service_charges||0);
+                    form.find(".com_rec").val(data.com_rec||0);
+                    form.find(".com_paid").val(data.com_paid||0);
+                    form.find(".wh_air").val(data.wh_air||0);
+                    form.find(".pst_paid").val(data.pst_paid||0);
+                    form.find(".psf").val(data.psf||0);
+                    form.find(".disc").val(data.discount||0);
+                    form.find(".wh_client").val(data.wh_client||0);
+                    form.find(".agent_amount_f").val(data.agent_amount||0);
+                    form.find(".agent_f").val(data.agent_id||'');
+                    form.find(".payable").val(data.payable||0);
+                    form.find(".refund_amount").val(data.refund_amount||0);
+                    form.find(".net_refund").val(data.net_refund||0);
+                    form.find(".total_taxes").val(data.refund_taxes||0);
                     form.find(".btn-success").text('Update');
+                    ticket_refund_cal(form.find('.refund_amount'));
                     $("#loader").hide();
                 }
             })
@@ -1204,6 +1319,8 @@
         $(this).closest('form').find('.com_rec').val(Number(com));
         if(formData=='tour-ticket-form' || formData=='ticket-form'){
             ticket_cal(g);
+        }else if(formData=='ticket-refund-form'){
+            ticket_refund_cal(g);
         }
         if(formData=='tour-hotel-form' || formData=='hotel-form'){
             hotel_cal(g);
@@ -1211,11 +1328,14 @@
     });
     $(".com_paid_p").on('change',function () {
         g=$(this);
+        formData=g.closest('form').attr('id');
             var bf=$(this).closest('form').find('.bf').val();
             com=Number(bf)*Number($(this).val())/100;
         $(this).closest('form').find('.com_paid').val(Number(com));
         if(formData=='tour-ticket-form' || formData=='ticket-form'){
             ticket_cal(g);
+        }else if(formData=='ticket-refund-form'){
+            ticket_refund_cal(g);
         }
         if(formData=='tour-hotel-form' || formData=='hotel-form'){
             hotel_cal(g);
@@ -1224,11 +1344,14 @@
     });
     $(".wh_air_p").on('change',function () {
         g=$(this);
+        formData=g.closest('form').attr('id');
         var com_rec=$(this).closest('form').find('.com_rec').val();
         com=Number(com_rec)*Number($(this).val()/100);
         $(this).closest('form').find('.wh_air').val(com);
         if(formData=='tour-ticket-form' || formData=='ticket-form'){
             ticket_cal(g);
+        }else if(formData=='ticket-refund-form'){
+            ticket_refund_cal(g);
         }
         if(formData=='tour-hotel-form' || formData=='hotel-form'){
             hotel_cal(g);
@@ -1242,6 +1365,8 @@
         $(this).closest('form').find('.psf').val(Number(psf));
         if(formData=='tour-ticket-form' || formData=='ticket-form'){
             ticket_cal(this);
+        }else if(formData=='ticket-refund-form'){
+            ticket_refund_cal(this);
         }
         if(formData=='tour-hotel-form' || formData=='hotel-form'){
             hotel_cal(this);
@@ -1249,11 +1374,14 @@
     });
     $(".disc_p").on("change", function () {
         g=$(this);
+        formData=g.closest('form').attr('id');
         var bf=$(this).closest('form').find('.bf').val();
         var discount=Number(bf)*Number($(this).val()/100);
         $(this).closest('form').find(".disc").val(discount);
         if(formData=='tour-ticket-form' || formData=='ticket-form'){
             ticket_cal(g);
+        }else if(formData=='ticket-refund-form'){
+            ticket_refund_cal(g);
         }
         if(formData=='tour-hotel-form' || formData=='hotel-form'){
             hotel_cal(g);
@@ -1267,6 +1395,8 @@
         $(this).closest('form').find(".wh_client").val(whc);
         if(formData=='tour-ticket-form' || formData=='ticket-form'){
             ticket_cal(g);
+        }else if(formData=='ticket-refund-form'){
+            ticket_refund_cal(g);
         }
         if(formData=='tour-hotel-form' || formData=='hotel-form'){
             hotel_cal(g);
