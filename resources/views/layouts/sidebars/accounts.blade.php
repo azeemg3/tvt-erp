@@ -5,6 +5,7 @@ $accounts=['root_accounts', 'dashboard', 'head_accounts', 'subhead_accounts',
     'financial_year','service_providors'];
 $account_reports=['ledger_report','trail_balance','account_day_book','balance_sheet','income_statement'];
 $sale_reports=['simple_sale_register','sale_reg_payable_only','simple_sr_modewise','client_wise_psf','bsp_sale_report'];
+$ledger_reports=['sale_rep_ledger','ledger_rep_first_format','cash_bank_statement'];
 $invoice_reports=['pending_invoice_report','clearance_invoice_report'];
 $sale=['Sale'];
 $setup_account=['clients','vendors','general-accounts'];
@@ -198,6 +199,7 @@ $setup_account=['clients','vendors','general-accounts'];
 @if(Auth::user()->can('account_reports_view') || Auth::user()->can('sale_invoices_view'))
     <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $account_reports)) echo 'menu-open';
     elseif(Request::segment(2)=='sale') echo 'menu-open'; elseif(in_array(Request::segment(3), $sale_reports)) echo 'menu-open';
+    elseif(Request::segment(2)=='ledger_reports' || in_array(Request::segment(3), $ledger_reports)) echo 'menu-open';
     elseif(in_array(Request::segment(3), $invoice_reports)) echo 'menu-open';?>">
         <a href="#" class="nav-link">
             <i class="nav-icon fas fa-chart-area"></i>
@@ -286,6 +288,34 @@ $setup_account=['clients','vendors','general-accounts'];
                             <a href="{{ route('bsp_sale_report.index') }}" class="nav-link {{ (request()->is('reports/sale/bsp_sale_report*')) ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                                 <p>Bsp Sale Report</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item has-treeview <?php if(Request::segment(2)=='ledger_reports' || in_array(Request::segment(3), $ledger_reports)) echo 'menu-open'; ?>">
+                    <a href="#" class="nav-link {{ (request()->is('reports/ledger_reports/*')) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                        <p>Ledger Report
+                            <i class="nav-icon right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('sale_rep_ledger.index') }}" class="nav-link {{ (request()->is('reports/ledger_reports/sale_rep_ledger*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Sale Report Ledger</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('ledger_rep_first_format.index') }}" class="nav-link {{ (request()->is('reports/ledger_reports/ledger_rep_first_format*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Ledger Report Format 1</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('cash_bank_statement.index') }}" class="nav-link {{ (request()->is('reports/ledger_reports/cash_bank_statement*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Cash &amp; Bank Statement</p>
                             </a>
                         </li>
                     </ul>

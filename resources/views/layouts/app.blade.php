@@ -73,7 +73,7 @@
             $.widget.bridge('uibutton', $.ui.button)
 		</script>
 		<!-- Select2 -->
-		<script src="{{ URL::asset('public/plugins/select2/js/select2.full.min.js') }}" defer></script>
+		<script src="{{ URL::asset('public/plugins/select2/js/select2.full.min.js') }}"></script>
 		<!-- Bootstrap 4 -->
 		<script src="{{ URL::asset('public/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 		<!-- ChartJS -->

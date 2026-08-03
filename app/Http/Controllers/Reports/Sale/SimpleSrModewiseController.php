@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Reports\Sale;
 use App\Helpers\Account;
 use App\Helpers\CommonHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Reports\ParsesReportDates;
 use Illuminate\Http\Request;
 use DB;
+use InvalidArgumentException;
 
 class SimpleSrModewiseController extends Controller
 {
+    use ParsesReportDates;
+
     private const MODES = [
         'ticket'   => ['label' => 'Tickets', 'method' => 'ticketRows'],
         'hotel'    => ['label' => 'Hotels', 'method' => 'hotelRows'],
@@ -25,6 +29,12 @@ class SimpleSrModewiseController extends Controller
 
     public function get_data(Request $request)
     {
+        try {
+            $this->mergeParsedReportDates($request);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
         $mode = $request->mode;
         $modes = ($mode && isset(self::MODES[$mode]))
             ? [$mode => self::MODES[$mode]]

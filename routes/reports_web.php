@@ -44,6 +44,14 @@ Route::group(['middleware' => ['auth']], function() {
             Route::resource('clearance_invoice_report', Reports\Sale\ClearanceInvoiceReportController::class);
             Route::post('get_clearance_invoice_report', 'Reports\Sale\ClearanceInvoiceReportController@get_data');
         });
+        Route::prefix('ledger_reports')->group(function () {
+            Route::resource('sale_rep_ledger', Reports\Ledger\SaleReportLedgerController::class)->only(['index']);
+            Route::post('get_sale_rep_ledger', 'Reports\Ledger\SaleReportLedgerController@get_data');
+            Route::resource('ledger_rep_first_format', Reports\Ledger\LedgerReportFormat1Controller::class)->only(['index']);
+            Route::post('get_ledger_rep_first_format', 'Reports\Ledger\LedgerReportFormat1Controller@get_data');
+            Route::resource('cash_bank_statement', Reports\Ledger\CashBankStatementController::class)->only(['index']);
+            Route::post('get_cash_bank_statement', 'Reports\Ledger\CashBankStatementController@get_data');
+        });
     });
 });
 

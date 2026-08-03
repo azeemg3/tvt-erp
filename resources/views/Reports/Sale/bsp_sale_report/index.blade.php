@@ -232,15 +232,15 @@
             </div>
         </section>
     </div>
+@endsection
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+@push('scripts')
     <script src="{{ URL::asset('public/export_excel/jquery.table2excel.js') }}"></script>
     <script>
         var COLUMN_COUNT = 11;
 
-        $(function () {
-            $('.select2').select2();
-            setDefaultDates();
+        bootstrapReportFilters('#form', function () {
+            setReportDefaultDates('#df', '#dt', '#display_from', '#display_to');
             updatePrintingDate();
             get_data();
         });
@@ -390,32 +390,29 @@
             window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
         }
 
-        var jq = $.noConflict();
-        jq(document).ready(function () {
-            jq(".exportToExcel").click(function () {
-                jq("#table2excel").table2excel({
-                    exclude: ".noExl",
-                    name: "Bsp Sale Report",
-                    filename: "bsp_sale_report_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xls",
-                    fileext: ".xls",
-                    exclude_img: true,
-                    exclude_links: true,
-                    exclude_inputs: true,
-                    preserveColors: true
-                });
-            });
-
-            jq(".exportToWord").click(function () {
-                var header = document.querySelector('.bsp-report-header').outerHTML;
-                var table = document.getElementById('table2excel').outerHTML;
-                var footer = document.querySelector('.report-footer').outerHTML;
-                var html = '<html><head><meta charset="utf-8"></head><body>' + header + table + footer + '</body></html>';
-                var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-                var link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = 'bsp_sale_report_' + new Date().toISOString().slice(0, 10) + '.doc';
-                link.click();
+        $(document).on('click', '.exportToExcel', function () {
+            $("#table2excel").table2excel({
+                exclude: ".noExl",
+                name: "Bsp Sale Report",
+                filename: "bsp_sale_report_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xls",
+                fileext: ".xls",
+                exclude_img: true,
+                exclude_links: true,
+                exclude_inputs: true,
+                preserveColors: true
             });
         });
+
+        $(document).on('click', '.exportToWord', function () {
+            var header = document.querySelector('.bsp-report-header').outerHTML;
+            var table = document.getElementById('table2excel').outerHTML;
+            var footer = document.querySelector('.report-footer').outerHTML;
+            var html = '<html><head><meta charset="utf-8"></head><body>' + header + table + footer + '</body></html>';
+            var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'bsp_sale_report_' + new Date().toISOString().slice(0, 10) + '.doc';
+            link.click();
+        });
     </script>
-@endsection
+@endpush

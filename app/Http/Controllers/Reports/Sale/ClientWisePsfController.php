@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Reports\Sale;
 
 use App\Helpers\Account;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Reports\ParsesReportDates;
 use Illuminate\Http\Request;
 use DB;
+use InvalidArgumentException;
 
 class ClientWisePsfController extends Controller
 {
+    use ParsesReportDates;
+
     public function index()
     {
         return view('Reports.Sale.client_wise_psf.index');
@@ -16,6 +20,12 @@ class ClientWisePsfController extends Controller
 
     public function get_data(Request $request)
     {
+        try {
+            $this->mergeParsedReportDates($request);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
         $query = DB::table('tickets')
             ->join('sale_invoices', 'sale_invoices.id', '=', 'tickets.SID')
             ->leftJoin('transaction_accounts as client_acc', 'sale_invoices.ledger', '=', 'client_acc.id')

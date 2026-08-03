@@ -108,6 +108,98 @@ function snf(num)
 }
 //@application wide date display format (day-month-year)
 var APP_DATE_FORMAT = 'DD-MM-YYYY';
+
+/** Wait until jQuery and Select2 are loaded (report pages use @push('scripts')). */
+window.whenReportReady = function (callback) {
+    (function wait() {
+        if (typeof window.jQuery === 'undefined' || !jQuery.fn || typeof jQuery.fn.select2 !== 'function') {
+            setTimeout(wait, 25);
+            return;
+        }
+        jQuery(callback);
+    })();
+};
+
+/** Initialize searchable Select2 on report filter dropdowns. */
+window.initReportSelect2 = function (root) {
+    var $scope = root ? jQuery(root) : jQuery(document);
+    $scope.find('select.select2').each(function () {
+        var $el = jQuery(this);
+        if ($el.hasClass('select2-hidden-accessible')) {
+            try {
+                $el.select2('destroy');
+            } catch (e) { /* ignore */ }
+        }
+        $el.select2({
+            width: '100%',
+            theme: 'bootstrap4',
+            placeholder: $el.find('option[value=""]').text() || 'Select',
+            allowClear: !!$el.find('option[value=""]').length,
+            dropdownParent: jQuery('body'),
+            minimumResultsForSearch: 0
+        });
+    });
+};
+
+/** Ensure report filter date inputs use the app date picker (after @push scripts). */
+window.initReportDatePickers = function (root) {
+    if (typeof jQuery.fn.daterangepicker !== 'function' || typeof moment === 'undefined') {
+        return;
+    }
+    var $scope = root ? jQuery(root) : jQuery(document);
+    $scope.find('input.date, input.dob').each(function () {
+        var $el = jQuery(this);
+        if ($el.data('daterangepicker')) {
+            return;
+        }
+        $el.daterangepicker({
+            autoUpdateInput: false,
+            singleDatePicker: true,
+            showDropdowns: true,
+            minYear: 1930,
+            maxYear: parseInt(moment().format('YYYY'), 10) + 15,
+            locale: { format: APP_DATE_FORMAT }
+        });
+        $el.off('apply.daterangepicker.report').on('apply.daterangepicker.report', function (ev, picker) {
+            jQuery(this).val(picker.startDate.format(APP_DATE_FORMAT));
+        });
+        $el.attr('autocomplete', 'off');
+    });
+    normalize_date_display($scope);
+};
+
+/** Standard report page bootstrap: Select2 + dates + callback. */
+window.bootstrapReportFilters = function (formSelector, callback) {
+    whenReportReady(function () {
+        initReportDatePickers(formSelector);
+        initReportSelect2(formSelector);
+        if (typeof callback === 'function') {
+            callback();
+        }
+    });
+};
+
+window.setReportDefaultDates = function (fromSelector, toSelector, displayFromSelector, displayToSelector) {
+    var today = new Date();
+    var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    var fmt = function (d) {
+        return ('0' + d.getDate()).slice(-2) + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + d.getFullYear();
+    };
+    var $df = jQuery(fromSelector);
+    var $dt = jQuery(toSelector);
+    if (!$df.val()) {
+        $df.val(fmt(firstDay));
+    }
+    if (!$dt.val()) {
+        $dt.val(fmt(today));
+    }
+    if (displayFromSelector) {
+        jQuery(displayFromSelector).text($df.val());
+    }
+    if (displayToSelector) {
+        jQuery(displayToSelector).text($dt.val());
+    }
+};
 //convert any DD-MM-YYYY / YYYY-MM-DD picker values already on the page to DD-MM-YYYY
 function normalize_date_display(scope) {
     var $scope = scope ? $(scope) : $(document);

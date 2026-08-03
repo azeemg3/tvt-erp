@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Accounts\Reports;
 
 use App\Helpers\CommonHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Reports\ParsesReportDates;
 use Illuminate\Http\Request;
 use App\Models\Accounts\Transaction;
 use App\Helpers\Account;
-use Nette\Utils\Helpers;
 use DB;
+use InvalidArgumentException;
+
 class LedgerController extends Controller
 {
+    use ParsesReportDates;
+
     function __construct()
     {
         $this->middleware('permission:general_ledger_view', ['only' => ['index']]);
@@ -21,6 +25,12 @@ class LedgerController extends Controller
     }
     //fetch data on click search button
     public function get_ledger(Request $request){
+        try {
+            $this->mergeParsedReportDates($request);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
         $tdr=0; $tcr=0; $cb=0;
         $res=Transaction::whereBetween('trans_date', [$request->df, $request->dt])
 //            ->whereBetween(DB::raw('DATE(created_at)'),Account::financial_year())

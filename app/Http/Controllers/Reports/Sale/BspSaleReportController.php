@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Reports\Sale;
 
 use App\Helpers\Account;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Reports\ParsesReportDates;
 use Illuminate\Http\Request;
 use DB;
+use InvalidArgumentException;
 
 /**
  * BSP (Billing & Settlement Plan) Sale Report.
@@ -27,6 +29,8 @@ use DB;
  */
 class BspSaleReportController extends Controller
 {
+    use ParsesReportDates;
+
     /**
      * Column keys that participate in the numeric aggregation.
      */
@@ -42,6 +46,12 @@ class BspSaleReportController extends Controller
      */
     public function get_data(Request $request)
     {
+        try {
+            $this->mergeParsedReportDates($request);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
         $df = $request->df;
         $dt = $request->dt;
         $airline = $request->airline;
