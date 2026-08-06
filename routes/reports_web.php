@@ -44,6 +44,10 @@ Route::group(['middleware' => ['auth']], function() {
             Route::resource('clearance_invoice_report', Reports\Sale\ClearanceInvoiceReportController::class);
             Route::post('get_clearance_invoice_report', 'Reports\Sale\ClearanceInvoiceReportController@get_data');
         });
+        Route::prefix('client')->group(function () {
+            Route::resource('invoice_wise_aging', Reports\Client\InvoiceWiseAgingController::class)->only(['index']);
+            Route::post('get_invoice_wise_aging', 'Reports\Client\InvoiceWiseAgingController@get_data');
+        });
         Route::prefix('ledger_reports')->group(function () {
             Route::resource('sale_rep_ledger', Reports\Ledger\SaleReportLedgerController::class)->only(['index']);
             Route::post('get_sale_rep_ledger', 'Reports\Ledger\SaleReportLedgerController@get_data');

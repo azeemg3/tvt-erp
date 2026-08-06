@@ -7,6 +7,7 @@ $account_reports=['ledger_report','trail_balance','account_day_book','balance_sh
 $sale_reports=['simple_sale_register','sale_reg_payable_only','simple_sr_modewise','client_wise_psf','bsp_sale_report'];
 $ledger_reports=['sale_rep_ledger','ledger_rep_first_format','cash_bank_statement'];
 $invoice_reports=['pending_invoice_report','clearance_invoice_report'];
+$client_reports=['invoice_wise_aging'];
 $sale=['Sale'];
 $setup_account=['clients','vendors','general-accounts'];
 ?>
@@ -200,7 +201,8 @@ $setup_account=['clients','vendors','general-accounts'];
     <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $account_reports)) echo 'menu-open';
     elseif(Request::segment(2)=='sale') echo 'menu-open'; elseif(in_array(Request::segment(3), $sale_reports)) echo 'menu-open';
     elseif(Request::segment(2)=='ledger_reports' || in_array(Request::segment(3), $ledger_reports)) echo 'menu-open';
-    elseif(in_array(Request::segment(3), $invoice_reports)) echo 'menu-open';?>">
+    elseif(in_array(Request::segment(3), $invoice_reports)) echo 'menu-open';
+    elseif(in_array(Request::segment(3), $client_reports)) echo 'menu-open';?>">
         <a href="#" class="nav-link">
             <i class="nav-icon fas fa-chart-area"></i>
             <p>
@@ -338,6 +340,22 @@ $setup_account=['clients','vendors','general-accounts'];
                             <a href="{{ route('clearance_invoice_report.index') }}" class="nav-link {{ (request()->is('reports/sale/clearance_invoice_report*')) ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
                                 <p>Clearance Invoice Report</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item has-treeview <?php if(in_array(Request::segment(3), $client_reports)) echo 'menu-open'; ?>">
+                    <a href="#" class="nav-link {{ (request()->is('reports/client/invoice_wise_aging*')) ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                        <p>Clients Report
+                            <i class="nav-icon right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('invoice_wise_aging.index') }}" class="nav-link {{ (request()->is('reports/client/invoice_wise_aging*')) ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                                <p>Invoice Wise Aging</p>
                             </a>
                         </li>
                     </ul>
