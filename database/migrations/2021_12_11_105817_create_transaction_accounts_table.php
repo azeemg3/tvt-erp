@@ -15,7 +15,7 @@ class CreateTransactionAccountsTable extends Migration
     {
         Schema::create('transaction_accounts', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigIncrements('code');
+            $table->unsignedBigInteger('code')->nullable();
             $table->string('Trans_Acc_Name');
             $table->unsignedBigInteger('PID');
             $table->unsignedBigInteger('Parent_Type')->nullable();
