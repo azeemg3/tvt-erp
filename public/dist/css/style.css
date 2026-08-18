@@ -89,3 +89,58 @@ label{
 .lead-chat .direct-chat-text{
  margin: 5px 0px 0px 0px !important;
 }
+
+/* Admin home / module launcher cards */
+.module-link,
+.module-link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+.module-card {
+    border: 1px solid rgba(0, 0, 0, .06);
+    border-radius: .5rem;
+    overflow: hidden;
+    transition: transform .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+.module-link:hover .module-card {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+}
+.module-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: #fff;
+}
+.module-launcher .module-icon {
+    width: 72px;
+    height: 72px;
+    font-size: 30px;
+    margin-bottom: 1rem;
+}
+.module-title {
+    font-size: 1rem;
+    font-weight: 600;
+}
+.module-desc {
+    color: #6c757d;
+    font-size: .85rem;
+    min-height: 2.4em;
+    margin-bottom: 0;
+}
+.module-hub .hub-section-title {
+    font-weight: 600;
+}
+.module-hub .hub-filter {
+    max-width: 320px;
+}
+.module-hub .hub-empty-filter {
+    display: none;
+}
+.min-width-0 {
+    min-width: 0;
+}

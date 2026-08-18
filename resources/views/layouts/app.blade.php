@@ -149,12 +149,14 @@
 			success:function (data) {
 			    if(data.countUmrahGroups>0) {
                     $("#umrah_count").html('<span data-toggle="tooltip" title="New Groups" class="badge bg-warning">' + data.countUmrahGroups + '</span>');
+                    $("#hub-badge-umrah").removeClass('d-none').text(data.countUmrahGroups);
                 }
                 if(data.countUmrahGroups>0) {
                     $("#group_count").html('<span data-toggle="tooltip" title="New Groups" class="badge bg-warning">' + data.countUmrahGroups + '</span>');
                 }
                 if(data.total_agents>0){
                     $("#total_agent_noti").html('<span data-toggle="tooltip" title="New Groups" class="badge bg-warning">' + data.total_agents + '</span>');
+                    $("#hub-badge-agent").removeClass('d-none').text(data.total_agents);
                     if(data.countUmrahTrips>0){
                         $("#countUmrahTrips").html('<span data-toggle="tooltip" title="New Groups" class="badge bg-warning">' + data.countUmrahTrips + '</span>');
 					}

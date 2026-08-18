@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 //Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::post('notify','LeadController@notify');
 Auth::routes();
+Route::get('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout']);
 Route::get('/', function () {
     return Redirect::to('home');
 //    return view('home');
@@ -102,10 +103,6 @@ Route::group(['middleware' => ['auth']], function() {
     //Modular navigation :: selection landing page + module switcher
     Route::get('modules', [App\Http\Controllers\ModuleController::class, 'index'])->name('modules.index');
     Route::get('modules/{slug}', [App\Http\Controllers\ModuleController::class, 'select'])->name('modules.select');
-    Route::get('/logout', function(){
-        Auth::logout();
-        return Redirect::to('login');
-    });
     Route::resource('company_setup', CompanyController::class);
     Route::resource('branches', BranchesController::class);
     Route::resource('continents', ContinentController::class);

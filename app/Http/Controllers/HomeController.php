@@ -10,6 +10,7 @@ use App\Models\Accounts\TransactionAccount;
 use App\Models\Crm\AgentUmrah;
 use App\Models\Currency;
 use App\Models\Umrah\GroupDetail;
+use App\Support\DashboardHub;
 use Illuminate\Http\Request;
 use Auth;
 use Spatie\Permission\Models\Permission;
@@ -53,13 +54,17 @@ class HomeController extends Controller
 //        dd();
 //        UmrahVoucherEmailJob::dispatch()->delay(now()->addSeconds(2));
 //        Mail::to('azeemkhalidg3@gmail.com')->send(new UmrahVouhcerEmail());
-        if (Auth::user()->isAdmin()) {
-            return view('home');
-        } elseif (Auth::user()->hasRole('Accountant')) {
-            return view('Accounts.index');
+        if (Auth::user()->hasRole('Accountant') && ! Auth::user()->isAdmin()) {
+            return redirect()->route('dashboard.index');
         }
 
-        return view('home');
+        $notifications = $this->menu_notification();
+        $moduleTiles = DashboardHub::applyBadges(DashboardHub::moduleTiles(), [
+            'hub-badge-agent' => $notifications['total_agents'] ?? 0,
+            'hub-badge-umrah' => $notifications['countUmrahGroups'] ?? 0,
+        ]);
+
+        return view('home', compact('moduleTiles'));
     }
     //all main menu noticfication
     public function menu_notification(){

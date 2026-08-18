@@ -37,6 +37,39 @@ class LedgerAccountHelper
         return self::resolveGroupId(self::VENDOR_GROUP_NAMES, ['Vendor', 'Payable', 'Supplier'], self::VENDOR_GROUP_FALLBACK_ID);
     }
 
+    /** Petty cash / bank ledgers (Current Assets). */
+    public const CASH_BANK_GROUP_NAMES = ['Petty Cash & Banks', 'Cash & Bank', 'Banks'];
+    public const CASH_BANK_GROUP_FALLBACK_ID = 1;
+
+    /** Agent receivable ledgers. Exact name only — "Third Party Agents" is a liability. */
+    public const AGENT_GROUP_NAME = 'Agent';
+    public const AGENT_GROUP_FALLBACK_ID = 21;
+
+    public static function cashBankGroupId(): int
+    {
+        return self::resolveGroupId(self::CASH_BANK_GROUP_NAMES, ['Petty Cash'], self::CASH_BANK_GROUP_FALLBACK_ID);
+    }
+
+    public static function agentGroupId(): int
+    {
+        $subHead = SubHeadAccount::where('name', self::AGENT_GROUP_NAME)->orderBy('id')->first();
+
+        return $subHead ? (int) $subHead->id : self::AGENT_GROUP_FALLBACK_ID;
+    }
+
+    /**
+     * Sub-heads treated as accounts receivable (customers + agents).
+     *
+     * @return int[]
+     */
+    public static function receivableGroupIds(): array
+    {
+        return array_values(array_unique([
+            self::clientGroupId(),
+            self::agentGroupId(),
+        ]));
+    }
+
     /**
      * Create a transaction account under the given sub head group and link it
      * back to the owning record. Returns the new transaction account id.

@@ -94,6 +94,68 @@ class Account{
         })->sum('amount');
         return $opening_balance+($dr-$cr);
     }
+
+    /**
+     * Closing balances for many ledgers as on $asOn (inclusive of that date).
+     * Same formula as ob(): opening + (posted Dr - posted Cr).
+     *
+     * @param  array<int>  $accountIds
+     * @return array<int, float>  keyed by transaction account id
+     */
+    public static function closingBalances(array $accountIds, ?string $asOn = null): array
+    {
+        $asOn = $asOn ?: date('Y-m-d');
+        $ids = array_values(array_unique(array_filter(array_map('intval', $accountIds))));
+
+        if (! $ids) {
+            return [];
+        }
+
+        $from = date('Y-m-d', strtotime('2015-08-10'));
+        $accounts = TransactionAccount::whereIn('id', $ids)->get(['id', 'OB', 'OB_Type']);
+
+        $sums = Transaction::query()
+            ->where('status', 1)
+            ->whereIn('trans_acc_id', $ids)
+            ->whereBetween('trans_date', [$from, $asOn])
+            ->selectRaw('trans_acc_id,
+                SUM(CASE WHEN dr_cr = 1 THEN amount ELSE 0 END) as dr_total,
+                SUM(CASE WHEN dr_cr = 2 THEN amount ELSE 0 END) as cr_total')
+            ->groupBy('trans_acc_id')
+            ->get()
+            ->keyBy('trans_acc_id');
+
+        $out = [];
+        foreach ($accounts as $account) {
+            $obAmount = (float) ($account->OB ?? 0);
+            $opening = ((string) $account->OB_Type === '1') ? $obAmount : -$obAmount;
+            $row = $sums->get($account->id);
+            $dr = (float) ($row->dr_total ?? 0);
+            $cr = (float) ($row->cr_total ?? 0);
+            $out[(int) $account->id] = $opening + ($dr - $cr);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Split a signed balance for dashboard tiles (amount + Dr/Cr).
+     *
+     * @return array{amount:string,side:string,raw:float}
+     */
+    public static function box_bal(float $bal): array
+    {
+        if (abs($bal) < 0.005) {
+            return ['amount' => '0.00', 'side' => '', 'raw' => 0.0];
+        }
+
+        return [
+            'amount' => number_format(abs($bal), 2),
+            'side'   => $bal > 0 ? 'Dr' : 'Cr',
+            'raw'    => $bal,
+        ];
+    }
+
     //@dr or cr
     public static function show_bal($bal){
         if ($bal>0) {

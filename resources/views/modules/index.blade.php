@@ -19,36 +19,8 @@
         .module-launcher .launcher-header {
             color: #fff;
         }
-        .module-launcher .module-card {
-            border: none;
-            border-radius: .5rem;
-            overflow: hidden;
-            transition: transform .15s ease-in-out, box-shadow .15s ease-in-out;
-            height: 100%;
-        }
         .module-launcher a.module-link:hover .module-card {
-            transform: translateY(-6px);
             box-shadow: 0 12px 28px rgba(0, 0, 0, .35);
-        }
-        .module-launcher .module-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            color: #fff;
-            margin-bottom: 1rem;
-        }
-        .module-launcher a.module-link,
-        .module-launcher a.module-link:hover {
-            text-decoration: none;
-            color: inherit;
-        }
-        .module-launcher .module-desc {
-            color: #6c757d;
-            min-height: 48px;
         }
     </style>
 </head>
@@ -64,35 +36,12 @@
             </a>
         </div>
 
-        @if(count($modules))
-            <div class="row">
-                @foreach($modules as $module)
-                    <div class="col-lg-4 col-md-6 mb-4">
-                        <a href="{{ route('modules.select', $module['slug']) }}" class="module-link d-block h-100">
-                            <div class="card module-card text-center">
-                                <div class="card-body py-4">
-                                    <span class="module-icon {{ $module['color'] ?? 'bg-gradient-primary' }}">
-                                        <i class="{{ $module['icon'] ?? 'fas fa-cube' }}"></i>
-                                    </span>
-                                    <h4 class="mb-2">{{ $module['label'] }}</h4>
-                                    <p class="module-desc mb-3">{{ $module['description'] ?? '' }}</p>
-                                    <span class="btn btn-sm {{ $module['color'] ?? 'bg-gradient-primary' }} text-white px-4">
-                                        Open <i class="fas fa-arrow-right ml-1"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <h4 class="mb-2">No modules assigned</h4>
-                    <p class="text-muted mb-0">Your account doesn't have access to any module yet. Please contact your administrator.</p>
-                </div>
-            </div>
-        @endif
+        <x-module-grid
+            :tiles="$moduleTiles"
+            variant="launcher"
+            empty-title="No modules assigned"
+            empty-message="Your account doesn't have access to any module yet. Please contact your administrator."
+        />
     </div>
 
     <script src="{{ URL::asset('public/plugins/jquery/jquery.min.js') }}"></script>

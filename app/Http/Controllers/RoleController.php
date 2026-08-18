@@ -84,25 +84,8 @@ class RoleController extends Controller
         $rolePermissions = DB::table("role_has_permissions")->where("role_has_permissions.role_id",$id)
             ->pluck('role_has_permissions.permission_id','role_has_permissions.permission_id')
             ->all();
-        $result=Permission::where(['parent_id'=>0])->orWhere('parent_id',Null)->get();
-        $htmlData='';
-        foreach ($result as $item) {
-            $htmlData .= '<tr>';
-            $htmlData .= '<td></td>';
-            $htmlData .= '<td>'.$item->name.'</td>';
-            $permission=Permission::where('parent_id', $item->id)->get();
-            foreach ($permission as $per) {
-                $htmlData .= '<td><input '.((in_array($per->id, $rolePermissions))?'checked':'').' type="checkbox" name="permission[]" value="'.$per->id.'"> </td>';
-            }
-            if($item->form==0){
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-            }
-        }
+        $htmlData = $this->permissionMatrixHtml($rolePermissions);
+
         return view('Roles.edit',compact('role','permission','rolePermissions','htmlData'));
     }
     /**
@@ -159,26 +142,52 @@ class RoleController extends Controller
     }
     //@get menu data
     public function get_menu(){
-        $result=Permission::where(['parent_id'=>0])->orWhere('parent_id',NULL)->get();
-        $htmlData='';
-        foreach ($result as $item) {
-            $htmlData .= '<tr>';
-            $htmlData .= '<td></td>';
-            $htmlData .= '<td>'.$item->name.'</td>';
-            $permission=Permission::where('parent_id', $item->id)->get();
-            foreach ($permission as $per) {
-                $htmlData .= '<td><input type="checkbox" name="permission[]" value="'.$per->id.'"> </td>';
+        return ['htmlData' => $this->permissionMatrixHtml()];
+    }
+
+    /**
+     * Build the Roles matrix: one row per menu, columns View/Create/Edit/Delete/Approve/Send/Upload.
+     *
+     * @param  array<int,int>  $rolePermissions
+     */
+    protected function permissionMatrixHtml(array $rolePermissions = []): string
+    {
+        $parents = Permission::query()
+            ->where(function ($q) {
+                $q->where('parent_id', 0)
+                    ->orWhereNull('parent_id')
+                    ->orWhere('parent_id', '');
+            })
+            ->orderBy('id')
+            ->get();
+
+        $columns = ['view', 'create', 'edit', 'delete', 'approve', 'send', 'upload'];
+        $html = '';
+
+        foreach ($parents as $item) {
+            $children = Permission::where('parent_id', $item->id)->get()->keyBy(function ($per) {
+                $parts = explode('_', $per->name);
+                return end($parts);
+            });
+
+            $html .= '<tr>';
+            $html .= '<td></td>';
+            $html .= '<td>'.e($item->name).'</td>';
+
+            foreach ($columns as $suffix) {
+                if (isset($children[$suffix])) {
+                    $per = $children[$suffix];
+                    $checked = in_array($per->id, $rolePermissions, true) || in_array((string) $per->id, $rolePermissions, true);
+                    $html .= '<td><input type="checkbox" name="permission[]" value="'.$per->id.'"'.($checked ? ' checked' : '').'></td>';
+                } else {
+                    $html .= '<td><input type="checkbox" name="permission[]" disabled value=""></td>';
+                }
             }
-            if($item->form==0){
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-                $htmlData .= '<td><input type="checkbox" name="permission[]" disabled value=""> </td>';
-            }
+
+            $html .= '</tr>';
         }
-        return compact('htmlData');
+
+        return $html;
     }
 
 }

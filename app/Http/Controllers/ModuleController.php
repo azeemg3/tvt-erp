@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\DashboardHub;
 use App\Support\ModuleManager;
 
 /**
@@ -19,9 +20,9 @@ class ModuleController extends Controller
      */
     public function index()
     {
-        $modules = ModuleManager::accessible();
+        $moduleTiles = DashboardHub::moduleTiles();
 
-        return view('modules.index', compact('modules'));
+        return view('modules.index', compact('moduleTiles'));
     }
 
     /**

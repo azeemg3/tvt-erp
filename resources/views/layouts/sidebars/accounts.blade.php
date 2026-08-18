@@ -364,7 +364,7 @@ $setup_account=['clients','vendors','general-accounts'];
         </ul>
     </li>
 @endif
-@can('setup_account_view')
+@canany(['setup_account_view', 'client_view', 'vendor_view', 'general_account_view'])
     <li class="nav-item has-treeview <?php if(in_array(Request::segment(1), $setup_account)) echo 'menu-open'; ?>">
         <a href="#" class="nav-link">
             <i class="nav-icon fas fa-address-book fa-xs"></i>
@@ -400,4 +400,4 @@ $setup_account=['clients','vendors','general-accounts'];
             @endcan
         </ul>
     </li>
-@endcan
+@endcanany
