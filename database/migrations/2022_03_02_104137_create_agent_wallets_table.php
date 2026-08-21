@@ -19,7 +19,6 @@ class CreateAgentWalletsTable extends Migration
             $table->date('trans_date');
             $table->date('posting_date')->nullable();
             $table->unsignedBigInteger('payment_from');
-            $table->unsignedBigInteger('agentID');
             $table->text('narration');
             $table->decimal('amount',30,2);
             $table->string('cheque')->nullable();
