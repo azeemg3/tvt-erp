@@ -26,7 +26,7 @@
             @error('email') <span class="invalid-feedback">{{ $message }}</span> @enderror
         </div>
         <div class="form-group col-md-4">
-            <label>Client Mobile <span class="text-danger">*</span></label>
+            <label>Client Mobile</label>
             <input type="text" name="mobile" class="form-control form-control-sm @error('mobile') is-invalid @enderror"
                    value="{{ old('mobile', $client->mobile ?? '') }}" placeholder="Client Mobile">
             @error('mobile') <span class="invalid-feedback">{{ $message }}</span> @enderror

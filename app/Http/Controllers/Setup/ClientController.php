@@ -8,13 +8,13 @@ use App\Helpers\LedgerAccountHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\GeneralAccount;
-use DataTables;
+use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class ClientController extends Controller
 {
@@ -56,6 +56,7 @@ class ClientController extends Controller
                 );
 
             return DataTables::of($query)
+                ->orderColumn('clients.client_code', 'clients.id $1')
                 ->addIndexColumn()
                 ->editColumn('credit_limit', function ($row) {
                     return number_format((float) $row->credit_limit, 2);
@@ -284,7 +285,7 @@ class ClientController extends Controller
         $rules = [
             'client_name'         => ['required', 'max:255', $uniqueName],
             'email'               => 'nullable|email|max:255',
-            'mobile'               => 'required|max:50',
+            'mobile'               => 'nullable|max:50',
             'co_spo'               => 'nullable|max:255',
             'spo_id'               => 'required|exists:general_accounts,id',
             'ro_id'                => 'nullable|exists:general_accounts,id',
@@ -299,7 +300,7 @@ class ClientController extends Controller
         $messages = [
             'client_name.required'      => 'Client Name is required.',
             'client_name.unique'        => 'This client name already exists. Please use a different name.',
-            'mobile.required'           => 'Client Mobile is required.',
+            'mobile.max'                => 'Client Mobile must not exceed 50 characters.',
             'category.required'         => 'Category is required.',
             'email.email'               => 'Please enter a valid email address.',
             'spo_id.required'           => 'SPO is required.',
@@ -309,6 +310,11 @@ class ClientController extends Controller
         ];
 
         $validated = $request->validate($rules, $messages);
+
+        // Normalize empty mobile inputs to null since the DB column is nullable.
+        if (array_key_exists('mobile', $validated) && is_string($validated['mobile']) && trim($validated['mobile']) === '') {
+            $validated['mobile'] = null;
+        }
 
         $this->assertGeneralAccountDesignation($validated['spo_id'], 'is_spo', 'SPO', 'spo_id');
         if (! empty($validated['ro_id'])) {

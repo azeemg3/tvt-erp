@@ -97,7 +97,7 @@
                     {data: 'status_badge', name: 'clients.status'},
                     {data: 'action', name: 'action', orderable: false, searchable: false},
                 ],
-                order: [[0, 'asc']],
+                order: [[1, 'desc']],
                 pageLength: 25
             });
         })();
