@@ -20,9 +20,29 @@ class CrmController extends Controller
 
     public function fetch_ticket($ticket)
     {
-        $ticket=explode("-",$ticket);
-       $result=DB::connection('crm')->table('add_sale')->where('airline_code',$ticket[0])->where('ticket_no',$ticket[1])->first();
-       return response()->json(['success'=>true,'data'=>$result]);
+        $parts = explode('-', $ticket, 2);
+        $airlineCode = trim($parts[0] ?? '');
+        $ticketNo = trim($parts[1] ?? '');
+
+        if ($airlineCode === '' || $ticketNo === '') {
+            return response()->json(['success' => false, 'data' => null]);
+        }
+
+        $ticketNoDigits = str_replace(['-', ' '], '', $ticketNo);
+
+        $result = DB::connection('crm')->table('add_sale')
+            ->where('airline_code', $airlineCode)
+            ->where(function ($query) use ($ticketNo, $ticketNoDigits) {
+                $query->where('ticket_no', $ticketNo)
+                    ->orWhere('ticket_no', $ticketNoDigits)
+                    ->orWhereRaw("REPLACE(REPLACE(ticket_no, '-', ''), ' ', '') = ?", [$ticketNoDigits]);
+            })
+            ->first();
+
+        return response()->json([
+            'success' => (bool) $result,
+            'data' => $result,
+        ]);
     }
     /**
      * Show the form for creating a new resource.

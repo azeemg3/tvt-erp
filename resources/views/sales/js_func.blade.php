@@ -1527,7 +1527,7 @@
 $(document).on("change","#ticket-no",function(){
     var ticket = $(this).val();
     $.ajax({
-        url:'{{ url('crm/fetch_ticket') }}/'+ticket,
+        url:'{{ url('crm/fetch_ticket') }}/'+encodeURIComponent(ticket),
         type:"GET",
         dataType:"JSON",
         success:function (data) {
