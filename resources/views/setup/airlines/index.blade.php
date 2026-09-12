@@ -1,132 +1,132 @@
 @extends('layouts.app')
+
 @section('content')
-    <!-- Content Wrapper. Contains page content -->
+    <link href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css" rel="stylesheet">
     <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
         <section class="content-header">
             <div class="container-fluid">
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-sm-6">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <h1 class="m-0 text-dark" style="font-size:1.4rem;">Airline List</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
                             <li class="breadcrumb-item">Application Setup</li>
                             <li class="breadcrumb-item active">Airlines</li>
                         </ol>
                     </div>
                 </div>
-            </div><!-- /.container-fluid -->
+            </div>
         </section>
-        <!-- Main content -->
         <section class="content">
             <div class="row">
                 <div class="col-12">
                     <div class="card rounded-0">
-                        <!-- /.card-header -->
-                        <div class="card-body">
-                            <button class="btn btn-xs btn-dark float-right" onclick="add_new()">Add New</button>
-                            <table id="example2" class="table table-bordered">
-                                <thead>
-                                <tr class="table-active">
-                                    <th>#</th>
-                                    <th>Name</th>
-                                    <th>Action</th>
-                                </tr>
-                                </thead>
-                                <tbody id="get_data"></tbody>
-                            </table>
+                        <div class="card-header">
+                            <h3 class="card-title pt-1">Airlines</h3>
+                            <div class="card-tools">
+                                <a href="{{ route('airlines.export.excel') }}" class="btn btn-success btn-xs">
+                                    <i class="fa fa-file-excel"></i> Excel
+                                </a>
+                                <a href="{{ route('airlines.export.pdf') }}" class="btn btn-danger btn-xs">
+                                    <i class="fa fa-file-pdf"></i> PDF
+                                </a>
+                                @can('airline_create')
+                                    <a href="{{ route('airlines.create') }}" class="btn btn-dark btn-xs">
+                                        <i class="fa fa-plus"></i> Add Airline
+                                    </a>
+                                @endcan
+                            </div>
                         </div>
-                        <!-- /.card-body -->
-                        <div class="card-footer clearfix">
-                            <div class="pagination-panel"></div>
+                        <div class="card-body">
+                            @include('setup.partials.flash')
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover table-striped data-table w-100">
+                                    <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Airline Name</th>
+                                        <th>IATA</th>
+                                        <th>ICAO</th>
+                                        <th>Numeric Code</th>
+                                        <th>Country</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                    <!-- /.card -->
                 </div>
-                <!-- /.col -->
             </div>
-            <!-- /.row -->
         </section>
-        <!-- /.content -->
     </div>
-    <!-- /.content-wrapper -->
-    @include('Setup.airlines.modal')
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-        function add_new() {
-            $("#new").modal();
-            document.getElementById("form").reset();
-            $("#form input[name~='id']").val(0);
-            $("#new").find('.btn-success').text('Submit');
-        }
-        $(function () {
-            //Initialize Select2 Elements
-            $('.select2').select2();
 
-        });
-        function save_rec() {
-            $("#loader").show();
-            $.ajax({
-                url:"{{ route('airlines.store') }}",
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                type:"POST",
-                dataType:"JSON",
-                data:$("#form").serialize(),
-                success:function (data) {
-                    $("#form input[name~='id']").val(0);
-                    toastr.success('Operation Successfully..');
-                    document.getElementById("form").reset();
-                    $("#new").modal('hide');
-                    get_data();
-                    $("#loader").hide();
-                },error:function(ajaxcontent) {
-                    vali=ajaxcontent.responseJSON.errors;
-                    var errors='';
-                    $.each(vali, function( index, value ) {
-                        $("#form input[name~='" + index + "']").css('border', '1px solid red');
-                        toastr.error(value);
-                    });
-                    $("#loader").hide();
-                }
-            })
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js" defer></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.min.js" defer></script>
+    <script>
+        var table;
+        (function initAirlinesDatatable() {
+            if (typeof window.jQuery === 'undefined' || !jQuery.fn || !jQuery.fn.DataTable) {
+                return setTimeout(initAirlinesDatatable, 150);
+            }
+            table = $('.data-table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                ajax: {
+                    url: "{{ route('airlines.data') }}",
+                    type: "POST",
+                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+                },
+                columns: [
+                    {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                    {data: 'name', name: 'airlines.name'},
+                    {data: 'iata_code', name: 'airlines.iata_code'},
+                    {data: 'icao_code', name: 'airlines.icao_code'},
+                    {data: 'numeric_code', name: 'airlines.numeric_code'},
+                    {data: 'country_name', name: 'country_name'},
+                    {data: 'status_badge', name: 'airlines.status'},
+                    {data: 'action', name: 'action', orderable: false, searchable: false},
+                ],
+                order: [[1, 'asc']],
+                pageLength: 25
+            });
+        })();
+
+        function reload_table() {
+            if (table) { table.ajax.reload(null, false); }
         }
-        get_data();
-        function get_data(page){
+
+        function toggle_status(url) {
             $.ajax({
-                url:"{{ url('Application_Setup/get_airlines') }}?page="+page,
+                url: url,
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                type:"POST",
-                dataType:"JSON",
-                success:function (data) {
-                    htmlData='';
-                    for(i in data){
-                        htmlData+='<tr id="'+data[i].id+'">';
-                        htmlData+='<td>'+(Number(i)+1)+'</td>';
-                        htmlData+='<td>'+data[i].name+'</td>';
-                        htmlData+='<td>';
-                        htmlData+='<a  class="btn btn-primary btn-xs" href="javascript:void(0)" onclick="edit('+data[i].id+')"><i class="fa fa-edit"></i> </a>';
-                        htmlData+=' <a  class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="del_rec(\''+data[i].id+'\', \'{{ url('Hr/designation/') }}/'+data[i].id+'\')"><i class="fa fa-trash"></i> </a>';
-                        htmlData+='</td>';
-                        htmlData+='</tr>';
-                    }
-                    $("#get_data").html(htmlData);
-                    pagination(total, per_page, current_page, to ,get_data);
-                }
-            })
+                dataType: 'JSON',
+                success: function () {
+                    toastr.success('Status updated.');
+                    reload_table();
+                },
+                error: function () { toastr.error('Unable to update status.'); }
+            });
         }
-        function edit(id) {
-            $("#new").modal();
+
+        function del_airline(id) {
+            if (!confirm('Are you sure you want to delete this airline?')) { return; }
             $.ajax({
-                url: "{{ url('Application_Setup/airlines') }}/" + id + "/edit",
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                success: function (data) {
-                    for (i=0; i<Object.keys(data).length; i++){
-                        $("#form input[name~='"+Object.keys(data)[i]+"']").val(Object.values(data)[i]);
-                        $("#form select[name~='"+Object.keys(data)[i]+"']").val(Object.values(data)[i]);
-                    }
-                    $('.select2').select2();
-                    $("#new").find(".btn-success").text('Update');
-                }
-            })
+                url: "{{ url('Application_Setup/airlines') }}/" + id,
+                type: 'POST',
+                data: {_method: 'DELETE', _token: $('meta[name="csrf-token"]').attr('content')},
+                dataType: 'JSON',
+                success: function () {
+                    toastr.success('Airline deleted successfully.');
+                    reload_table();
+                },
+                error: function () { toastr.error('Unable to delete airline.'); }
+            });
         }
     </script>
 @endsection

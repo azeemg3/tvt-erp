@@ -2,6 +2,24 @@
 
 /*
 |--------------------------------------------------------------------------
+| Honour this project's .env over leftover process variables
+|--------------------------------------------------------------------------
+|
+| On a shared XAMPP stack, Windows or Apache can already have DB_DATABASE
+| set (e.g. kitchen_db from another project). phpdotenv will not overwrite
+| those by default, so this ERP would query the wrong database and login
+| would fail looking for financial_years. Load .env mutably first so this
+| application's values always win.
+|
+*/
+
+$envPath = dirname(__DIR__);
+if (class_exists(\Dotenv\Dotenv::class) && is_file($envPath.DIRECTORY_SEPARATOR.'.env')) {
+    \Dotenv\Dotenv::createMutable($envPath)->safeLoad();
+}
+
+/*
+|--------------------------------------------------------------------------
 | Create The Application
 |--------------------------------------------------------------------------
 |

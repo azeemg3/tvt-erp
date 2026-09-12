@@ -2,7 +2,7 @@
 // Shared "Administration" navigation reused by every module (permission gated).
 $appication_setup=['categories', 'currencies', 'product_types', 'products', 'regions',
     'currency_api','currency_history','sources','clients', 'continents', 'countries',
-    'division','district', 'cities', 'province', 'areas','mosques'];
+    'division','district', 'cities', 'province', 'areas','mosques', 'airlines'];
 $user=['users', 'create', 'roles', 'permission'];
 $hr=['designation', 'department', 'employee'];
 $bus_setup=['company_setup', 'branches'];
@@ -153,6 +153,14 @@ $sale=['Sale'];
                     <p>Currency Rate History</p>
                 </a>
             </li>
+            @can('airline_view')
+                <li class="nav-item">
+                    <a href="{{ route('airlines.index') }}" class="nav-link {{ request()->is('Application_Setup/airlines*')?'active':'' }}">
+                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
+                        <p>Airlines</p>
+                    </a>
+                </li>
+            @endcan
             @can('location_setup_view')
                 <li class="nav-item has-treeview <?php if(in_array(Request::segment(1), $appication_setup)) echo 'menu-open'; ?>">
                     <a href="#" class="nav-link">

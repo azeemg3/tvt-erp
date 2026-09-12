@@ -163,8 +163,11 @@ Route::group(['middleware' => ['auth']], function() {
         Route::post('get_hotels', 'ApplicationSetup\HotelController@get_data');
         Route::resource('ticket_source', ApplicationSetup\TicketSourceController::class);
         Route::post('get_ticket_source', 'ApplicationSetup\TicketSourceController@get_data');
+        Route::match(['get', 'post'], 'airlines/get_data', 'ApplicationSetup\AirlineController@get_data')->name('airlines.data');
+        Route::get('airlines/export/excel', 'ApplicationSetup\AirlineController@exportExcel')->name('airlines.export.excel');
+        Route::get('airlines/export/pdf', 'ApplicationSetup\AirlineController@exportPdf')->name('airlines.export.pdf');
+        Route::get('airlines/{airline}/toggle-status', 'ApplicationSetup\AirlineController@toggleStatus')->name('airlines.toggle_status');
         Route::resource('airlines', ApplicationSetup\AirlineController::class);
-        Route::post('get_airlines', 'ApplicationSetup\AirlineController@get_data');
         Route::prefix('user_management')->group(function (){
             Route::resource('roles', RoleController::class);
             Route::post('store_menu', 'RoleController@store_menu');

@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class FinancialYear extends Model
 {
@@ -12,7 +13,14 @@ class FinancialYear extends Model
     protected $fillable=['id', 'start_year', 'end_year', 'created_at', 'updated_at'];
     public static function dropdown($id=0){
         $list='';
-        $result=self::orderBy('id','DESC')->get();
+        try {
+            if (! Schema::hasTable((new static)->getTable())) {
+                return $list;
+            }
+            $result = self::orderBy('id', 'DESC')->get();
+        } catch (\Throwable $e) {
+            return $list;
+        }
         foreach ($result as $item){
             $list.='<option value="'.$item->start_year.'/' .$item->end_year.'">
             '.Carbon::createFromFormat('Y-m-d', $item->start_year)->year.'-'

@@ -4,7 +4,7 @@ $providors=['providors','hotel_providor','visa_providor','transport_providor'];
 $acc_providor=['account_statement'];
 $accounts=['account_statement'];
 $visa=['visa_rate'];
-$flight=['airlines', 'ticket_source'];
+$flight=['ticket_source'];
 $hotel=['hotel_rate','hotels','room_types'];
 $transport=['transport_rate'];
 $cms=['cms','quarantine','customize_packages','tour'];
@@ -133,12 +133,6 @@ $api=['api_management', 'flight'];
                 </li>
             @endcan
             @can('airline_view')
-                <li class="nav-item">
-                    <a href="{{ route('airlines.index') }}" class="nav-link {{ request()->is('Application_Setup/airlines')?'active':'' }}">
-                        <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
-                        <p>Airlines</p>
-                    </a>
-                </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link {{ request()->is('api_management/flight')?'active':'' }}">
                         <i class="nav-icon fas fa-angle-double-right fa-xs"></i>
