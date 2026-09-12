@@ -25,7 +25,7 @@ class AirlineController extends Controller
 
     public function index()
     {
-        return view('setup.airlines.index');
+        return view()->first(['Setup.airlines.index', 'setup.airlines.index']);
     }
 
     public function get_data(Request $request)
@@ -77,7 +77,7 @@ class AirlineController extends Controller
 
     public function create()
     {
-        return view('setup.airlines.create');
+        return view()->first(['Setup.airlines.create', 'setup.airlines.create']);
     }
 
     public function store(Request $request)
@@ -95,14 +95,14 @@ class AirlineController extends Controller
     {
         $airline = Airline::with(['creator', 'countryInfo'])->findOrFail($id);
 
-        return view('setup.airlines.show', compact('airline'));
+        return view()->first(['Setup.airlines.show', 'setup.airlines.show'], compact('airline'));
     }
 
     public function edit($id)
     {
         $airline = Airline::findOrFail($id);
 
-        return view('setup.airlines.edit', compact('airline'));
+        return view()->first(['Setup.airlines.edit', 'setup.airlines.edit'], compact('airline'));
     }
 
     public function update(Request $request, $id)
@@ -151,7 +151,7 @@ class AirlineController extends Controller
     public function exportPdf()
     {
         $airlines = Airline::with('countryInfo')->orderBy('name')->get();
-        $pdf      = PDF::loadView('setup.airlines.pdf', compact('airlines'))->setPaper('a4', 'landscape');
+        $pdf      = PDF::loadView('Setup.airlines.pdf', compact('airlines'))->setPaper('a4', 'landscape');
 
         return $pdf->download('airlines_'.date('Ymd_His').'.pdf');
     }

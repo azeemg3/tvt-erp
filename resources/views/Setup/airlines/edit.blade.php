@@ -27,7 +27,7 @@
                         <form action="{{ route('airlines.update', $airline->id) }}" method="POST" autocomplete="off">
                             @csrf
                             @method('PUT')
-                            @include('setup.airlines._form', ['airline' => $airline, 'submitLabel' => 'Update Airline'])
+                            @include('Setup.airlines._form', ['airline' => $airline, 'submitLabel' => 'Update Airline'])
                         </form>
                     </div>
                 </div>

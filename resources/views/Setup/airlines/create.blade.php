@@ -26,7 +26,7 @@
                         @include('setup.partials.flash')
                         <form action="{{ route('airlines.store') }}" method="POST" autocomplete="off">
                             @csrf
-                            @include('setup.airlines._form', ['airline' => null, 'submitLabel' => 'Create Airline'])
+                            @include('Setup.airlines._form', ['airline' => null, 'submitLabel' => 'Create Airline'])
                         </form>
                     </div>
                 </div>
