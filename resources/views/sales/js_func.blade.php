@@ -8,7 +8,7 @@
         if ($.fn.select2) {
             $(".select2").select2();
         }
-        $(document).on('keydown', '#ticket-search-form input[name="inv_no"]', function (e) {
+        $(document).on('keydown', '#ticket-search-form input[name="inv_no"], #ticket-search-form input[name="ticket_no"]', function (e) {
             if (e.key === 'Enter') { e.preventDefault(); get_ticket_invoice(1, true); }
         });
         $(document).on('keydown', '#hotel-search-form input[name="inv_no"]', function (e) {
@@ -202,16 +202,18 @@
                 $("#loader").hide();
                 $("#"+fData).find(".btn-success").text('Submit');
             },error:function(ajaxcontent) {
-                vali=ajaxcontent.responseJSON.errors;
+                vali=ajaxcontent.responseJSON && ajaxcontent.responseJSON.errors;
                 var errors='';
-                if(ajaxcontent.responseJSON.success=='false'){
+                if(ajaxcontent.responseJSON && ajaxcontent.responseJSON.success=='false' && !vali){
                     toastr.error('Something Wrong with your Request..!');
                 }
-                $.each(vali, function( index, value ) {
-                    $("#"+fData+ " input[name~='" + index + "']").css('border', '1px solid red');
-                    $("#"+fData+ " select[name~='" + index + "']").css('border', '1px solid red');
-                    toastr.error(value);
-                });
+                if(vali){
+                    $.each(vali, function( index, value ) {
+                        $("#"+fData+ " input[name~='" + index + "']").css('border', '1px solid red');
+                        $("#"+fData+ " select[name~='" + index + "']").css('border', '1px solid red');
+                        toastr.error(Array.isArray(value) ? value[0] : value);
+                    });
+                }
                 $("#loader").hide();
             }
         })

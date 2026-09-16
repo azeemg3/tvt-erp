@@ -26,6 +26,12 @@
             </div>
         </div>
         <!--col-->
+        <div class="col-md-2">
+            <div class="form-group">
+                <input type="text" name="ticket_no" class="form-control form-control-sm" placeholder="Ticket No" maxlength="16">
+            </div>
+        </div>
+        <!--col-->
         <div class="col-md-1">
             <div class="form-group">
                 <button type="button" class="btn btn-info btn-xs" onclick="get_ticket_invoice(1, true)"><i class="fa fa-search"></i> </button>

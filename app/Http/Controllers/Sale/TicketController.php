@@ -12,6 +12,7 @@ use App\Helpers\Account;
 use DB;
 use Auth;
 use Config;
+use Illuminate\Validation\Rule;
 class TicketController extends Controller
 {
     /**
@@ -21,21 +22,25 @@ class TicketController extends Controller
      */
     public function index(Request $request)
     {
+        $bypassDateFilters = $request->filled('inv_no') || $request->filled('ticket_no');
         $result=DB::table('sale_invoices')->join('tickets', 'sale_invoices.id', '=', 'tickets.SID')
             ->leftjoin('transaction_accounts', 'sale_invoices.ledger', 'transaction_accounts.id')
             ->select('sale_invoices.*', 'transaction_accounts.Trans_Acc_Name', DB::raw('sum(tickets.receiveable) as total'),
                 DB::raw('sum(tickets.payable) as payable'), DB::raw('sum(tickets.discount) as discount'),
                 DB::raw('sum(tickets.profit) as profit'),
                 DB::raw('count(tickets.id) as totalPax'))->where(['type' => 1])
-            ->when(!$request->filled('inv_no'), function ($query) {
+            ->when(!$bypassDateFilters, function ($query) {
                 $query->whereBetween(DB::raw('DATE(tickets.created_at)'), Account::financial_year());
             })
-            ->when($request->df && !$request->filled('inv_no'), function ($query) use ($request) {
+            ->when($request->df && !$bypassDateFilters, function ($query) use ($request) {
                 $query->whereBetween(DB::raw('DATE(tickets.created_at)'), [$request->df, $request->dt]);
             })->when($request->ledger, function ($query) use ($request) {
                 $query->where('sale_invoices.ledger', $request->ledger);
             })->when($request->filled('inv_no'), function ($query) use ($request) {
                 $query->where('sale_invoices.id', $request->inv_no);
+            })->when($request->filled('ticket_no'), function ($query) use ($request) {
+                $ticketNo = trim($request->ticket_no);
+                $query->where('tickets.ticket_no', 'like', '%' . $ticketNo . '%');
             })
             ->groupBy('tickets.SID')
             ->paginate(1000);
@@ -61,12 +66,17 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
+        $ticketId = ($request->filled('id') && (int) $request->id > 0) ? (int) $request->id : null;
+        $existingForUnique = $ticketId ? Ticket::find($ticketId) : null;
         $rules=[
             'inv_date'=>'required',
             'pax_name'=>'required',
             'sector'=>'required',
             // 'departure_date'=>'required',
-            'ticket_no'=>'required',
+            'ticket_no'=>[
+                'required',
+                Rule::unique('tickets', 'ticket_no')->ignore($existingForUnique ? $existingForUnique->id : null),
+            ],
             'basic_fare'=>'required',
             'receiveable'=>'required',
             'ledger'=>'required',
@@ -80,6 +90,7 @@ class TicketController extends Controller
             'sector.required'=>'sector Required',
             'departure_date.required'=>'Departure Date Required',
             'ticket_no.required'=>'Ticket No Required',
+            'ticket_no.unique'=>'You are trying to enter a duplicate ticket. Please change it accordingly.',
             'basic_fare.required'=>'Basic Fare Required',
             'receiveable.required'=>'Receiveable Fare Required',
             'ledger.required'=>'Please Select Receivable Account',
@@ -265,12 +276,20 @@ class TicketController extends Controller
             }
 
         }catch (\Illuminate\Database\QueryException $e){
-            $code = $e->errorInfo[1];
+            DB::rollback();
+            // MySQL duplicate entry
+            if (isset($e->errorInfo[1]) && (int) $e->errorInfo[1] === 1062) {
+                return response()->json([
+                    'success' => 'false',
+                    'errors' => [
+                        'ticket_no' => ['You are trying to enter a duplicate ticket. Please change it accordingly.'],
+                    ],
+                ], 422);
+            }
             return response()->json([
                 'success' => 'false',
                 'code'  => $e->errorInfo,
             ], 400);
-            DB::rollback();
         }
     }
 
