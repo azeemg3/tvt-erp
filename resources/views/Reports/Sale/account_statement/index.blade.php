@@ -1,5 +1,16 @@
 @extends('layouts.app')
 
+@php
+    $reportTitle = $reportTitle ?? 'Account Statement';
+    $reportSlug = $reportSlug ?? 'account_statement';
+    $reportMode = $reportMode ?? 'invoice';
+    $dataUrl = $dataUrl ?? url('reports/sale/get_account_statement_invoice_wise');
+    $pdfUrl = $pdfUrl ?? url('reports/sale/pdf_account_statement_invoice_wise');
+    $isTicketMode = $reportMode === 'ticket';
+    $invoiceColspan = $isTicketMode ? 11 : 9;
+    $receiptColspan = 7;
+@endphp
+
 @section('content')
     <style>
         #report-area {
@@ -10,36 +21,36 @@
             display: flex;
             flex-direction: column;
         }
-        .aging-top-header {
+        .stmt-top-header {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 4px;
         }
-        .aging-top-header td {
+        .stmt-top-header td {
             vertical-align: top;
             border: none;
             padding: 0;
         }
-        .aging-logo img { max-width: 110px; max-height: 70px; }
-        .aging-company-name {
+        .stmt-logo img { max-width: 110px; max-height: 70px; }
+        .stmt-company-name {
             font-size: 20px;
             font-weight: 700;
             color: #1a3a8a;
             margin: 0 0 2px;
             letter-spacing: 0.3px;
         }
-        .aging-report-title {
+        .stmt-report-title {
             font-size: 14px;
             font-weight: 700;
             color: #111;
             margin: 0 0 2px;
         }
-        .aging-dates {
+        .stmt-dates {
             font-size: 12px;
             font-style: italic;
             margin: 0;
         }
-        .aging-client-box {
+        .stmt-client-box {
             display: inline-block;
             background: #cfe8f5;
             border: 1px solid #9ec9df;
@@ -50,21 +61,21 @@
             font-size: 13px;
             line-height: 1.35;
         }
-        .aging-print-meta {
+        .stmt-print-meta {
             width: 100%;
             font-size: 11px;
             font-style: italic;
             margin: 6px 0 10px;
             border-collapse: collapse;
         }
-        .aging-print-meta td { border: none; padding: 0; }
-        .aging-table {
+        .stmt-print-meta td { border: none; padding: 0; }
+        .stmt-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
             margin-bottom: 14px;
         }
-        .aging-table .section-bar td {
+        .stmt-table .section-bar td {
             background: #6c757d;
             color: #fff;
             text-align: center;
@@ -73,7 +84,7 @@
             padding: 5px;
             border: 1px solid #5a6268;
         }
-        .aging-table thead th {
+        .stmt-table thead th {
             background: #d9d9d9;
             border: 1px solid #9a9a9a;
             padding: 5px 4px;
@@ -82,30 +93,25 @@
             text-align: center;
             white-space: nowrap;
         }
-        .aging-table tbody td {
+        .stmt-table tbody td {
             border: 1px solid #b0b0b0;
             padding: 4px 5px;
-            vertical-align: top;
+            vertical-align: middle;
         }
-        .aging-table .text-right { text-align: right; white-space: nowrap; }
-        .aging-table .text-center { text-align: center; }
-        .aging-table .neg { color: #c00000; font-weight: 700; }
-        .aging-table .total-row td {
+        .stmt-table .text-right { text-align: right; white-space: nowrap; }
+        .stmt-table .text-center { text-align: center; }
+        .stmt-table .group-start td { border-top: 1px dashed #666; }
+        .stmt-table .total-row td {
             background: #d9d9d9;
             font-weight: 700;
             border: 1px solid #9a9a9a;
         }
-        .aging-table .client-total td {
-            background: #bfbfbf;
-            font-weight: 700;
-            border: 1px solid #8a8a8a;
-        }
-        .aging-table .empty-row td {
+        .stmt-table .empty-row td {
             text-align: center;
             color: #777;
             padding: 12px;
         }
-        .aging-total-label { text-align: right !important; padding-right: 8px !important; }
+        .stmt-total-label { text-align: right !important; padding-right: 8px !important; }
         .report-actions .btn { margin-right: 6px; margin-bottom: 6px; }
         .btn-excel { background-color: #17a2b8; border-color: #17a2b8; color: #fff; }
         .btn-word { background-color: #007bff; border-color: #007bff; color: #fff; }
@@ -124,12 +130,12 @@
         @media print {
             .no-report { display: none !important; }
             div.report-show { display: block !important; }
-            table.report-show, table.aging-table, table.aging-top-header, table.aging-print-meta { display: table !important; }
+            table.report-show, table.stmt-table, table.stmt-top-header, table.stmt-print-meta { display: table !important; }
             .content-wrapper { margin: 0 !important; padding: 0 !important; }
             .main-footer, .main-header, .main-sidebar, .card { border: none !important; box-shadow: none !important; }
             .card-body { padding: 0 !important; }
             @page { size: landscape; margin: 8mm 8mm 14mm 8mm; }
-            .aging-table { font-size: 9px; }
+            .stmt-table { font-size: 9px; }
             #report-area {
                 min-height: auto;
                 display: block;
@@ -153,8 +159,8 @@
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#">Home</a></li>
                     <li class="breadcrumb-item">Reports</li>
-                    <li class="breadcrumb-item">Clients Report</li>
-                    <li class="breadcrumb-item active">Invoice Wise Aging</li>
+                    <li class="breadcrumb-item">Invoice Reports</li>
+                    <li class="breadcrumb-item active">{{ $reportTitle }}</li>
                 </ol>
             </div>
         </section>
@@ -185,22 +191,22 @@
                     </form>
 
                     <div id="report-area" class="mt-3">
-                        <table class="aging-top-header report-show" id="report_header">
+                        <table class="stmt-top-header report-show" id="report_header">
                             <tr>
                                 <td style="width:18%;">
-                                    <div class="aging-logo">
+                                    <div class="stmt-logo">
                                         <img src="{{ $company->logo_url }}" alt="Logo" onerror="this.style.display='none'">
                                     </div>
                                 </td>
                                 <td style="width:54%; text-align:center;">
-                                    <div class="aging-company-name">{{ $company->name }}</div>
-                                    <div class="aging-report-title">Invoice Wise Aging</div>
-                                    <div class="aging-dates">
+                                    <div class="stmt-company-name">{{ $company->name }}</div>
+                                    <div class="stmt-report-title">{{ $reportTitle }}</div>
+                                    <div class="stmt-dates">
                                         From : <span id="display_from">-</span> To : <span id="display_to">-</span>
                                     </div>
                                 </td>
                                 <td style="width:28%; text-align:right;">
-                                    <div class="aging-client-box" id="client_box">
+                                    <div class="stmt-client-box" id="client_box">
                                         <div id="client_code">Select Client</div>
                                         <div id="client_name"></div>
                                     </div>
@@ -208,29 +214,52 @@
                             </tr>
                         </table>
 
-                        <table class="aging-print-meta report-show">
+                        <table class="stmt-print-meta report-show">
                             <tr>
                                 <td style="width:50%;">Print On : <span id="print_on"></span></td>
                                 <td style="width:50%; text-align:center;">Print By : <span id="print_by">{{ Auth::user()->name ?? '' }}</span></td>
                             </tr>
                         </table>
 
-                        <table id="table2excel" class="aging-table report-show">
+                        <table id="invoices_table" class="stmt-table report-show">
                             <thead>
-                            <tr class="section-bar"><td colspan="8">Invoices/DN/UB</td></tr>
+                            <tr class="section-bar"><td colspan="{{ $invoiceColspan }}">Invoices</td></tr>
                             <tr>
-                                <th style="width:16%;">Invoice No / Date / XO No</th>
-                                <th style="width:34%;">Name of Passenger / Remarks</th>
-                                <th>Net Invoice</th>
-                                <th>Less Refund</th>
-                                <th>Less:<br>Receipts</th>
-                                <th>Add:<br>Payment</th>
-                                <th>Balance<br>Amount</th>
-                                <th>Days<br>Over</th>
+                                <th>Date</th>
+                                <th>XO Number</th>
+                                <th>Invoice Number</th>
+                                <th>Name of Passenger</th>
+                                @if($isTicketMode)
+                                    <th>Ticket Number</th>
+                                    <th>Sector</th>
+                                @endif
+                                <th>Fare</th>
+                                <th>Taxes (+)</th>
+                                <th>SP (-)</th>
+                                <th>KB (-)</th>
+                                <th>Net Amount</th>
                             </tr>
                             </thead>
-                            <tbody id="report_body">
-                            <tr class="empty-row"><td colspan="8">Select a client and run the report.</td></tr>
+                            <tbody id="invoices_body">
+                            <tr class="empty-row"><td colspan="{{ $invoiceColspan }}">Select a client and run the report.</td></tr>
+                            </tbody>
+                        </table>
+
+                        <table id="receipts_table" class="stmt-table report-show">
+                            <thead>
+                            <tr class="section-bar"><td colspan="{{ $receiptColspan }}">Receipts/Payments</td></tr>
+                            <tr>
+                                <th>Trans. Date</th>
+                                <th>Voucher Number</th>
+                                <th>Invoice Number</th>
+                                <th>Cheque Number</th>
+                                <th>Remarks</th>
+                                <th>Receipts (Credit)</th>
+                                <th>Payments (Debit)</th>
+                            </tr>
+                            </thead>
+                            <tbody id="receipts_body">
+                            <tr class="empty-row"><td colspan="{{ $receiptColspan }}">Select a client and run the report.</td></tr>
                             </tbody>
                         </table>
 
@@ -247,7 +276,7 @@
                                 <tr>
                                     <td style="text-align:left;">Copyright &copy; {{ date('Y') }} {{ $company->name }}.</td>
                                     <td style="text-align:center;">@if(!empty($company->website))Website: {{ $company->website }}@endif</td>
-                                    <td style="text-align:right;">{{ $company->powered_by ?: 'Software developed by http://www.talent4tech.pk' }}</td>
+                                    <td style="text-align:right;">{{ $company->powered_by ?: 'All rights reserved.' }}</td>
                                 </tr>
                             </table>
                         </div>
@@ -261,6 +290,10 @@
 @push('scripts')
     <script src="{{ URL::asset('public/export_excel/jquery.table2excel.js') }}"></script>
     <script>
+        var reportMode = @json($reportMode);
+        var invoiceColspan = {{ $invoiceColspan }};
+        var receiptColspan = {{ $receiptColspan }};
+
         bootstrapReportFilters('#form', function () {
             setDefaultDates();
             updatePrintMeta();
@@ -268,15 +301,12 @@
 
         function setDefaultDates() {
             var today = new Date();
+            var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
             var isoFmt = function (d) {
                 return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
             };
-            if (!$('#df').val()) {
-                $('#df').val('2010-07-01');
-            }
-            if (!$('#dt').val()) {
-                $('#dt').val(isoFmt(today));
-            }
+            if (!$('#df').val()) $('#df').val(isoFmt(firstDay));
+            if (!$('#dt').val()) $('#dt').val(isoFmt(today));
             $('#display_from').text(formatDateDisplay($('#df').val()));
             $('#display_to').text(formatDateDisplay($('#dt').val()));
         }
@@ -284,79 +314,105 @@
         function formatDateDisplay(dateStr) {
             if (!dateStr) return '-';
             var parts = String(dateStr).substring(0, 10).split('-');
-            if (parts.length === 3) {
-                return parts[2] + '/' + parts[1] + '/' + parts[0];
-            }
+            if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
             return dateStr;
         }
 
-        function formatNumber(num) {
+        function formatAmount(num, withDecimals) {
             num = parseFloat(num) || 0;
-            if (Math.abs(num) < 0.005) {
-                return '';
+            if (Math.abs(num) < 0.005) return '';
+            if (withDecimals) {
+                return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
             return Math.round(num).toLocaleString('en-US');
-        }
-
-        function formatBalance(num) {
-            num = parseFloat(num) || 0;
-            if (Math.abs(num) < 0.005) {
-                return '';
-            }
-            var text = Math.round(num).toLocaleString('en-US');
-            if (num < 0) {
-                return '<span class="neg">' + text + '</span>';
-            }
-            return text;
         }
 
         function updatePrintMeta(name) {
             var now = new Date();
             var pad = function (n) { return ('0' + n).slice(-2); };
-            $('#print_on').text(
-                pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear()
-            );
-            if (name) {
-                $('#print_by').text(name);
-            }
+            $('#print_on').text(pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear());
+            if (name) $('#print_by').text(name);
         }
 
-        function renderRows(rows) {
+        function renderInvoiceRows(rows, totals) {
             var html = '';
-            for (var i = 0; i < rows.length; i++) {
-                var r = rows[i];
-                var remarks = (r.passenger_remarks || '');
-                if (r.extra_remarks) {
-                    remarks += (remarks ? '<br>' : '') + String(r.extra_remarks).replace(/\n/g, '<br>');
+            if (!rows || !rows.length) {
+                html += '<tr class="empty-row"><td colspan="' + invoiceColspan + '">No invoices found for the selected filters.</td></tr>';
+            } else {
+                var prevDate = '';
+                var prevInvoice = '';
+                for (var i = 0; i < rows.length; i++) {
+                    var r = rows[i];
+                    var dateVal = formatDateDisplay(r.date);
+                    var invNo = r.invoice_number || '';
+                    var showDate = true;
+                    var showInv = true;
+                    var rowClass = '';
+
+                    if (reportMode === 'ticket') {
+                        showDate = invNo !== prevInvoice;
+                        showInv = invNo !== prevInvoice;
+                        if (i > 0 && invNo !== prevInvoice) rowClass = 'group-start';
+                        prevInvoice = invNo;
+                    } else {
+                        showDate = dateVal !== prevDate;
+                        prevDate = dateVal;
+                    }
+
+                    html += '<tr class="' + rowClass + '">';
+                    html += '<td class="text-center">' + (showDate ? dateVal : '') + '</td>';
+                    html += '<td class="text-center">' + ((showInv || reportMode !== 'ticket') ? (r.xo_no || '') : '') + '</td>';
+                    html += '<td class="text-center">' + (showInv ? invNo : '') + '</td>';
+                    html += '<td>' + (r.passenger_name || '') + '</td>';
+                    if (reportMode === 'ticket') {
+                        html += '<td class="text-center">' + (r.ticket_number || '') + '</td>';
+                        html += '<td>' + (r.sector || '') + '</td>';
+                    }
+                    html += '<td class="text-right">' + formatAmount(r.fare, false) + '</td>';
+                    html += '<td class="text-right">' + formatAmount(r.taxes, false) + '</td>';
+                    html += '<td class="text-right">' + formatAmount(r.sp, false) + '</td>';
+                    html += '<td class="text-right">' + formatAmount(r.kb, false) + '</td>';
+                    html += '<td class="text-right">' + formatAmount(r.net_amount, false) + '</td>';
+                    html += '</tr>';
                 }
-                var doc = r.doc_label || '';
-                if (r.xo_no) {
-                    doc += (doc ? '<br>' : '') + 'XO: ' + r.xo_no;
-                }
-                html += '<tr>';
-                html += '<td>' + doc + '</td>';
-                html += '<td>' + remarks + '</td>';
-                html += '<td class="text-right">' + formatNumber(r.net_invoice) + '</td>';
-                html += '<td class="text-right">' + formatNumber(r.less_refund) + '</td>';
-                html += '<td class="text-right">' + formatNumber(r.less_receipts) + '</td>';
-                html += '<td class="text-right">' + formatNumber(r.add_payment) + '</td>';
-                html += '<td class="text-right">' + formatBalance(r.balance_amount) + '</td>';
-                html += '<td class="text-right">' + (r.days_over ? r.days_over : '') + '</td>';
-                html += '</tr>';
             }
+
+            var t = totals || {};
+            var labelColspan = reportMode === 'ticket' ? 6 : 4;
+            html += '<tr class="total-row">';
+            html += '<td colspan="' + labelColspan + '" class="stmt-total-label">Invoice Total :</td>';
+            html += '<td class="text-right">' + formatAmount(t.fare, false) + '</td>';
+            html += '<td class="text-right">' + formatAmount(t.taxes, false) + '</td>';
+            html += '<td class="text-right">' + formatAmount(t.sp, false) + '</td>';
+            html += '<td class="text-right">' + formatAmount(t.kb, false) + '</td>';
+            html += '<td class="text-right">' + formatAmount(t.net_amount, false) + '</td>';
+            html += '</tr>';
             return html;
         }
 
-        function totalRow(label, totals, cssClass) {
-            cssClass = cssClass || 'total-row';
-            var html = '<tr class="' + cssClass + '">';
-            html += '<td colspan="2" class="aging-total-label">' + label + '</td>';
-            html += '<td class="text-right">' + formatNumber(totals.net_invoice) + '</td>';
-            html += '<td class="text-right">' + formatNumber(totals.less_refund) + '</td>';
-            html += '<td class="text-right">' + formatNumber(totals.less_receipts) + '</td>';
-            html += '<td class="text-right">' + formatNumber(totals.add_payment) + '</td>';
-            html += '<td class="text-right">' + formatBalance(totals.balance_amount) + '</td>';
-            html += '<td></td>';
+        function renderReceiptRows(rows, totals) {
+            var html = '';
+            if (!rows || !rows.length) {
+                html += '<tr class="empty-row"><td colspan="' + receiptColspan + '">No receipts/payments found for the selected filters.</td></tr>';
+            } else {
+                for (var i = 0; i < rows.length; i++) {
+                    var r = rows[i];
+                    html += '<tr>';
+                    html += '<td class="text-center">' + formatDateDisplay(r.trans_date) + '</td>';
+                    html += '<td class="text-center">' + (r.voucher_number || '') + '</td>';
+                    html += '<td class="text-center">' + (r.invoice_number || '-') + '</td>';
+                    html += '<td class="text-center">' + (r.cheque_number || '') + '</td>';
+                    html += '<td>' + (r.remarks || '') + '</td>';
+                    html += '<td class="text-right">' + formatAmount(r.receipts, true) + '</td>';
+                    html += '<td class="text-right">' + formatAmount(r.payments, true) + '</td>';
+                    html += '</tr>';
+                }
+            }
+            var t = totals || {};
+            html += '<tr class="total-row">';
+            html += '<td colspan="5" class="stmt-total-label">Total :</td>';
+            html += '<td class="text-right">' + formatAmount(t.receipts, true) + '</td>';
+            html += '<td class="text-right">' + formatAmount(t.payments, true) + '</td>';
             html += '</tr>';
             return html;
         }
@@ -367,45 +423,27 @@
                 toastr.warning('Please select a client.');
                 return;
             }
-
             $("#loader").show();
             $('#display_from').text(formatDateDisplay($('input[name="df"]').val()));
             $('#display_to').text(formatDateDisplay($('input[name="dt"]').val()));
 
             $.ajax({
-                url: "{{ url('reports/client/get_invoice_wise_aging') }}",
+                url: "{{ $dataUrl }}",
                 headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                type: 'POST',
-                dataType: 'JSON',
+                type: "POST",
+                dataType: "JSON",
                 data: $("#form").serialize(),
                 success: function (data) {
                     $('#client_code').text(data.client_code || '');
                     $('#client_name').text(data.client_name || data.ledger_name || '');
                     updatePrintMeta(data.printed_by);
-
-                    var html = '';
-                    if (data.invoices && data.invoices.length) {
-                        html += renderRows(data.invoices);
-                    } else {
-                        html += '<tr class="empty-row"><td colspan="8">No invoice records for selected filters.</td></tr>';
-                    }
-                    html += totalRow('Invoices/DN/UB Total :', data.invoice_totals || {});
-
-                    html += '<tr class="section-bar"><td colspan="8">Un-Adjusted Vouchers</td></tr>';
-                    if (data.unadjusted_vouchers && data.unadjusted_vouchers.length) {
-                        html += renderRows(data.unadjusted_vouchers);
-                    } else {
-                        html += '<tr class="empty-row"><td colspan="8">No un-adjusted vouchers.</td></tr>';
-                    }
-                    html += totalRow('Un-Adjusted Vouchers Total :', data.unadjusted_totals || {});
-                    html += totalRow('Client Total', data.client_totals || {}, 'client-total');
-
-                    $('#report_body').html(html);
+                    $('#invoices_body').html(renderInvoiceRows(data.invoices || [], data.invoice_totals || {}));
+                    $('#receipts_body').html(renderReceiptRows(data.receipts || [], data.receipt_totals || {}));
                     $("#loader").hide();
                 },
                 error: function (xhr) {
                     $("#loader").hide();
-                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to load report.';
+                    var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Failed to load report data.';
                     toastr.error(msg);
                 }
             });
@@ -417,11 +455,7 @@
                 toastr.warning('Please select a client.');
                 return;
             }
-            var $form = $('<form>', {
-                method: 'POST',
-                action: "{{ url('reports/client/pdf_invoice_wise_aging') }}",
-                target: '_blank'
-            });
+            var $form = $('<form>', { method: 'POST', action: @json($pdfUrl), target: '_blank' });
             $form.append($('<input>', { type: 'hidden', name: '_token', value: $('meta[name="csrf-token"]').attr('content') }));
             $form.append($('<input>', { type: 'hidden', name: 'df', value: $('input[name="df"]').val() }));
             $form.append($('<input>', { type: 'hidden', name: 'dt', value: $('input[name="dt"]').val() }));
@@ -429,10 +463,12 @@
             $form.appendTo('body').submit().remove();
         }
 
+        $('#printDiv').on('click', function () { window.print(); });
+
         function emailReport() {
-            var subject = encodeURIComponent('Invoice Wise Aging - {{ $company->name }}');
+            var subject = encodeURIComponent('{{ $reportTitle }} - {{ $company->name }}');
             var body = encodeURIComponent(
-                'Please find the Invoice Wise Aging report.\n\nClient: ' +
+                'Please find the {{ $reportTitle }}.\n\nClient: ' +
                 ($('#client_code').text() + ' ' + $('#client_name').text()).trim() +
                 '\nFrom: ' + $('#display_from').text() +
                 '\nTo: ' + $('#display_to').text()
@@ -440,28 +476,35 @@
             window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
         }
 
-        $('#printDiv').on('click', function () { window.print(); });
-
         $(document).on('click', '.exportToExcel', function () {
-            $("#table2excel").table2excel({
+            var $tmp = $('<table id="tmp_excel_export"></table>').appendTo('body').hide();
+            $('#invoices_table tr').clone().appendTo($tmp);
+            $tmp.append('<tr><td colspan="' + invoiceColspan + '"></td></tr>');
+            $('#receipts_table tr').clone().appendTo($tmp);
+            $tmp.table2excel({
                 exclude: ".noExl",
-                name: "Invoice Wise Aging",
-                filename: "invoice_wise_aging_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xls",
+                name: "{{ $reportTitle }}",
+                filename: "{{ $reportSlug }}_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xls",
                 fileext: ".xls",
+                exclude_img: true,
+                exclude_links: true,
+                exclude_inputs: true,
                 preserveColors: true
             });
+            $tmp.remove();
         });
 
         $(document).on('click', '.exportToWord', function () {
             var header = document.getElementById('report_header').outerHTML;
-            var meta = document.querySelector('.aging-print-meta').outerHTML;
-            var table = document.getElementById('table2excel').outerHTML;
+            var meta = document.querySelector('.stmt-print-meta').outerHTML;
+            var invoices = document.getElementById('invoices_table').outerHTML;
+            var receipts = document.getElementById('receipts_table').outerHTML;
             var footer = document.getElementById('report_footer').outerHTML;
-            var html = '<html><head><meta charset="utf-8"></head><body>' + header + meta + table + footer + '</body></html>';
-            var blob = new Blob(['\ufeff', html], {type: 'application/msword'});
+            var html = '<html><head><meta charset="utf-8"></head><body>' + header + meta + invoices + receipts + footer + '</body></html>';
+            var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
             var link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = 'invoice_wise_aging_' + new Date().toISOString().slice(0, 10) + '.doc';
+            link.download = '{{ $reportSlug }}_' + new Date().toISOString().slice(0, 10) + '.doc';
             link.click();
         });
     </script>

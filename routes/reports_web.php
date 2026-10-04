@@ -43,10 +43,20 @@ Route::group(['middleware' => ['auth']], function() {
             Route::post('get_pending_invoice_report', 'Reports\Sale\PendingInvoiceReportController@get_data');
             Route::resource('clearance_invoice_report', Reports\Sale\ClearanceInvoiceReportController::class);
             Route::post('get_clearance_invoice_report', 'Reports\Sale\ClearanceInvoiceReportController@get_data');
+            Route::resource('account_statement_invoice_wise', Reports\Sale\AccountStatementInvoiceWiseController::class)->only(['index']);
+            Route::post('get_account_statement_invoice_wise', 'Reports\Sale\AccountStatementInvoiceWiseController@get_data');
+            Route::post('pdf_account_statement_invoice_wise', 'Reports\Sale\AccountStatementInvoiceWiseController@exportPdf');
+            Route::resource('account_statement_ticket_wise', Reports\Sale\AccountStatementTicketWiseController::class)->only(['index']);
+            Route::post('get_account_statement_ticket_wise', 'Reports\Sale\AccountStatementTicketWiseController@get_data');
+            Route::post('pdf_account_statement_ticket_wise', 'Reports\Sale\AccountStatementTicketWiseController@exportPdf');
         });
         Route::prefix('client')->group(function () {
             Route::resource('invoice_wise_aging', Reports\Client\InvoiceWiseAgingController::class)->only(['index']);
             Route::post('get_invoice_wise_aging', 'Reports\Client\InvoiceWiseAgingController@get_data');
+            Route::post('pdf_invoice_wise_aging', 'Reports\Client\InvoiceWiseAgingController@exportPdf');
+            Route::resource('client_position_report', Reports\Client\ClientPositionReportController::class)->only(['index']);
+            Route::post('get_client_position_report', 'Reports\Client\ClientPositionReportController@get_data');
+            Route::post('pdf_client_position_report', 'Reports\Client\ClientPositionReportController@exportPdf');
         });
         Route::prefix('ledger_reports')->group(function () {
             Route::resource('sale_rep_ledger', Reports\Ledger\SaleReportLedgerController::class)->only(['index']);

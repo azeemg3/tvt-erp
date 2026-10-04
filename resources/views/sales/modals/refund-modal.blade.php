@@ -53,6 +53,7 @@
                             <select name="refund_type" class="form-control form-control-sm">
                                 <option value="0">Full Refund</option>
                                 <option value="1">Partial Refund</option>
+                                <option value="2">Void</option>
                             </select>
                         </div>
                         <div class="form-group col-md-2">

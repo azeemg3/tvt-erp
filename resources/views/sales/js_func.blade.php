@@ -1275,7 +1275,7 @@
                     }
                     form.find("input[name~='id']").val(data.id);
                     form.find("input[name~='refund_date']").val(data.refund_date);
-                    form.find("input[name~='refund_type']").val(data.refund_type);
+                    form.find("select[name~='refund_type']").val(data.refund_type);
                     form.find(".vendor_charges").val(data.vendor_charges||0);
                     form.find(".service_charges").val(data.service_charges||0);
                     form.find(".com_rec").val(data.com_rec||0);

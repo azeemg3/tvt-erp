@@ -7,12 +7,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Reports\ParsesReportDates;
 use App\Models\Accounts\TransactionAccount;
 use App\Models\Client;
+use App\Models\Company;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use PDF;
 
+/**
+ * Invoice Wise Aging — layout matches the attached aging PDF sample;
+ * amounts are loaded live from sale_invoices, line items and transactions.
+ */
 class InvoiceWiseAgingController extends Controller
 {
     use ParsesReportDates;
@@ -29,15 +35,72 @@ class InvoiceWiseAgingController extends Controller
         ]);
 
         try {
-            [$df, $dt] = $this->parseReportDateRange($request);
+            $payload = $this->buildReportPayload($request);
         } catch (InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
+        return response()->json($payload);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $request->validate([
+            'ledger' => 'required|integer',
+        ]);
+
+        try {
+            $payload = $this->buildReportPayload($request);
+        } catch (InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $company = Company::current();
+        $viewData = [
+            'company' => $company,
+            'clientLabel' => $payload['client_label'],
+            'clientCode' => $payload['client_code'],
+            'clientName' => $payload['client_name'],
+            'invoices' => $payload['invoices'],
+            'invoiceTotals' => $payload['invoice_totals'],
+            'unadjusted' => $payload['unadjusted_vouchers'],
+            'unadjustedTotals' => $payload['unadjusted_totals'],
+            'clientTotals' => $payload['client_totals'],
+            'printedBy' => $payload['printed_by'],
+            'df' => $request->input('df'),
+            'dt' => $request->input('dt'),
+            'printOn' => now()->format('d/m/Y'),
+        ];
+
+        $pdf = PDF::getPdf([
+            'format' => 'A4',
+            'orientation' => 'L',
+            'margin_left' => 8,
+            'margin_right' => 8,
+            'margin_top' => 8,
+            'margin_bottom' => 14,
+        ]);
+        $pdf->getMpdf()->SetHTMLFooter(
+            view('Reports.partials.pdf_page_footer', ['company' => $company])->render()
+        );
+        $pdf->getMpdf()->WriteHTML(
+            view('Reports.Client.invoice_wise_aging.pdf', $viewData)->render()
+        );
+
+        return $pdf->download('invoice_wise_aging_' . date('Ymd_His') . '.pdf');
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    private function buildReportPayload(Request $request): array
+    {
+        [$df, $dt] = $this->parseReportDateRange($request);
+
         $ledgerId = (int) $request->ledger;
         $ledger = TransactionAccount::find($ledgerId);
         if (!$ledger) {
-            return response()->json(['message' => 'Client ledger account not found.'], 422);
+            throw new InvalidArgumentException('Client ledger account not found.');
         }
 
         $client = Client::where('account_id', $ledgerId)->first();
@@ -49,17 +112,12 @@ class InvoiceWiseAgingController extends Controller
 
         $invoiceTotals = $this->sumColumns($invoiceRows);
         $voucherTotals = $this->sumColumns($voucherRows);
+        $clientTotals = $this->sumColumns(array_merge($invoiceRows, $voucherRows));
 
-        $clientTotals = [
-            'balance_amount' => round($invoiceTotals['balance_amount'] + $voucherTotals['balance_amount'], 2),
-            'less_receipts' => round($invoiceTotals['less_receipts'] - $voucherTotals['balance_amount'], 2),
-            'less_refund' => round($invoiceTotals['less_refund'] + $voucherTotals['less_refund'], 2),
-            'add_payment' => round($invoiceTotals['add_payment'] + $voucherTotals['add_payment'], 2),
-            'net_invoice' => round($invoiceTotals['net_invoice'] + $voucherTotals['net_invoice'], 2),
-        ];
-
-        return response()->json([
+        return [
             'client_label' => $this->clientLabel($ledger, $client),
+            'client_code' => $this->clientCode($ledger),
+            'client_name' => strtoupper($client->client_name ?? $ledger->Trans_Acc_Name),
             'ledger_name' => $ledger->Trans_Acc_Name,
             'invoices' => $invoiceRows,
             'invoice_totals' => $invoiceTotals,
@@ -67,7 +125,7 @@ class InvoiceWiseAgingController extends Controller
             'unadjusted_totals' => $voucherTotals,
             'client_totals' => $clientTotals,
             'printed_by' => Auth::user()->name ?? '',
-        ]);
+        ];
     }
 
     private function buildInvoiceSection(int $ledgerId, string $df, string $dt, Carbon $asOf, int $creditDays): array
@@ -81,8 +139,8 @@ class InvoiceWiseAgingController extends Controller
 
         $rows = [];
         foreach ($invoices as $invoice) {
-            $balanceAmount = $this->invoiceBalanceAmount((int) $invoice->id);
-            if ($balanceAmount <= 0) {
+            $netInvoice = $this->invoiceNetAmount((int) $invoice->id);
+            if ($netInvoice <= 0) {
                 continue;
             }
 
@@ -90,9 +148,9 @@ class InvoiceWiseAgingController extends Controller
             $lessReceipts = $this->sumClientTransactions($ledgerId, $invoiceId, 1, 2);
             $addPayment = $this->sumClientTransactions($ledgerId, $invoiceId, [2, 3], 1);
             $lessRefund = $this->sumRefunds($ledgerId, $invoiceId);
-            $netInvoice = round($balanceAmount - $lessReceipts - $lessRefund + $addPayment, 2);
+            $balanceAmount = round($netInvoice - $lessReceipts - $lessRefund + $addPayment, 2);
 
-            if (abs($netInvoice) < 0.005) {
+            if (abs($balanceAmount) < 0.005) {
                 continue;
             }
 
@@ -106,12 +164,12 @@ class InvoiceWiseAgingController extends Controller
                 'extra_remarks' => $detail['extra_remarks'],
                 'doc_label' => $this->formatInvoiceDocLabel($invoiceId, (int) $invoice->type, $invoice->inv_date),
                 'xo_no' => $invoice->trans_code ? (string) $invoice->trans_code : '',
-                'balance_amount' => round($balanceAmount, 2),
+                'net_invoice' => round($netInvoice, 2),
                 'less_receipts' => round($lessReceipts, 2),
                 'less_refund' => round($lessRefund, 2),
                 'add_payment' => round($addPayment, 2),
                 'days_over' => $daysOver,
-                'net_invoice' => $netInvoice,
+                'balance_amount' => $balanceAmount,
             ];
         }
 
@@ -136,33 +194,47 @@ class InvoiceWiseAgingController extends Controller
         foreach ($transactions as $row) {
             $amount = (float) $row->amount;
             $isDebit = (int) $row->dr_cr === 1;
-            $balanceAmount = $isDebit ? round($amount, 2) : round($amount, 2);
-            $lessReceipts = (!$isDebit && (int) $row->vt === 1) ? round($amount, 2) : 0.0;
-            $addPayment = ($isDebit && in_array((int) $row->vt, [2, 3], true)) ? round($amount, 2) : 0.0;
-            $netInvoice = round($isDebit ? $amount : -$amount, 2);
+            $vt = (int) $row->vt;
 
-            if (abs($netInvoice) < 0.005 && abs($balanceAmount) < 0.005) {
+            // Debit PV/JV -> Add Payment only; Credit RV -> Less Receipts; other credits reduce balance.
+            $netInvoice = 0.0;
+            $lessReceipts = 0.0;
+            $addPayment = 0.0;
+            $lessRefund = 0.0;
+            if ($isDebit && in_array($vt, [2, 3], true)) {
+                $addPayment = round($amount, 2);
+            } elseif ($isDebit) {
+                $netInvoice = round($amount, 2);
+            } elseif ($vt === 1) {
+                $lessReceipts = round($amount, 2);
+            }
+            $balanceAmount = round($netInvoice - $lessReceipts - $lessRefund + $addPayment, 2);
+            if (!$isDebit && $vt !== 1) {
+                $balanceAmount = round(-$amount, 2);
+            }
+
+            if (abs($balanceAmount) < 0.005 && abs($netInvoice) < 0.005 && abs($lessReceipts) < 0.005) {
                 continue;
             }
 
             $rows[] = [
                 'passenger_remarks' => (string) $row->narration,
                 'extra_remarks' => '',
-                'doc_label' => $this->formatVoucherLabel((int) $row->vt, (int) $row->trans_code, $row->trans_date),
+                'doc_label' => $this->formatVoucherLabel($vt, (int) $row->trans_code, $row->trans_date),
                 'xo_no' => '',
-                'balance_amount' => $balanceAmount,
+                'net_invoice' => $netInvoice,
                 'less_receipts' => $lessReceipts,
-                'less_refund' => 0.0,
+                'less_refund' => $lessRefund,
                 'add_payment' => $addPayment,
                 'days_over' => 0,
-                'net_invoice' => $netInvoice,
+                'balance_amount' => $balanceAmount,
             ];
         }
 
         return $rows;
     }
 
-    private function invoiceBalanceAmount(int $invoiceId): float
+    private function invoiceNetAmount(int $invoiceId): float
     {
         $tables = ['tickets', 'lead_hotels', 'visas', 'transports', 'other_sales'];
         $total = 0.0;
@@ -328,12 +400,19 @@ class InvoiceWiseAgingController extends Controller
         return $base;
     }
 
-    private function clientLabel(TransactionAccount $ledger, ?Client $client): string
+    private function clientCode(TransactionAccount $ledger): string
     {
         $code = (string) ($ledger->code ?? '');
         if ($code !== '' && strlen($code) > 4 && strpos($code, '-') === false) {
             $code = substr($code, 0, 4) . '-' . substr($code, 4);
         }
+
+        return $code;
+    }
+
+    private function clientLabel(TransactionAccount $ledger, ?Client $client): string
+    {
+        $code = $this->clientCode($ledger);
         $name = $client->client_name ?? $ledger->Trans_Acc_Name;
 
         return trim($code . ' ' . strtoupper($name));
@@ -342,11 +421,11 @@ class InvoiceWiseAgingController extends Controller
     private function sumColumns(array $rows): array
     {
         $totals = [
-            'balance_amount' => 0.0,
+            'net_invoice' => 0.0,
             'less_receipts' => 0.0,
             'less_refund' => 0.0,
             'add_payment' => 0.0,
-            'net_invoice' => 0.0,
+            'balance_amount' => 0.0,
         ];
         foreach ($rows as $row) {
             foreach (array_keys($totals) as $key) {
